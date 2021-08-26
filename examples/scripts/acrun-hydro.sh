@@ -13,4 +13,4 @@ set -x
 mkdir -p ${OUTDIR}
 cd ${OUTDIR}
 export OMP_NUM_THREADS=16
-srun --mpi=pmi2 -n1 -c$OMP_NUM_THREADS -N1 --exclusive -p amdMI100 ../../bin/cholla.hydro-amd-cray ../../tests/3D/sod.txt |& tee tee.mi100
+srun --mpi=pmi2 -n1 -c$OMP_NUM_THREADS -N1 --exclusive -p amdMI100 ../../bin/cholla.hydro-amd-cray ../../examples/3D/sod.txt |& tee tee.mi100

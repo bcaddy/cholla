@@ -15,4 +15,4 @@ set -x
 mkdir -p ${OUTDIR}
 cd ${OUTDIR}
 export OMP_NUM_THREADS=16
-srun --mpi=pmi2 -n4 -c$OMP_NUM_THREADS -N1 --exclusive -p amdMI100 ../../bin/cholla.paris.pfft-amd-cray ../../tests/scripts/parameter_file.txt |& tee tee.mi100
+srun --mpi=pmi2 -n4 -c$OMP_NUM_THREADS -N1 --exclusive -p amdMI100 ../../bin/cholla.paris.pfft-amd-cray ../../examples/scripts/parameter_file.txt |& tee tee.mi100

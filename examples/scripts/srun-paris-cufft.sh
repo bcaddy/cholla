@@ -13,4 +13,4 @@ set -x
 mkdir -p ${OUTDIR}
 cd ${OUTDIR}
 export OMP_NUM_THREADS=16
-jsrun --smpiargs="-gpu" -n1 -a1 -c16 -g1 ../../bin/cholla.paris.cufft ../../tests/scripts/parameter_file.txt |& tee tee
+jsrun --smpiargs="-gpu" -n1 -a1 -c16 -g1 ../../bin/cholla.paris.cufft ../../examples/scripts/parameter_file.txt |& tee tee
