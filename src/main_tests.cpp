@@ -133,7 +133,7 @@ int main(int argc, char **argv)
                    upperBuildType.end(),
                    upperBuildType.begin(),
                    ::toupper);
-    ::testing::GTEST_FLAG(filter) = "*t"+ upperBuildType + "*";
+    ::testing::GTEST_FLAG(filter) = "*t"+ upperBuildType + "*:*tALL*";
 
     // Run test and return result
     return RUN_ALL_TESTS();
