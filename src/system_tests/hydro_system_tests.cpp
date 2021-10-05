@@ -5,8 +5,6 @@
  *
  */
 
-// STL includes
-#include <string>
 
 // External Libraries and Headers
 #include <gtest/gtest.h>
