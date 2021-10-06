@@ -29,7 +29,7 @@
     && defined(PPMP) \
     && defined(HLLC) \
 // Testing Calculate_HLLC_Fluxes_CUDA
-TEST(tHYDROtDiskCalculateHLLCFluxesCUDA,  // Test suite name
+TEST(tHYDROCalculateHLLCFluxesCUDA,  // Test suite name
      LeftSideExpectCorrectOutput)  // Test name
 {
     // Physical Values
