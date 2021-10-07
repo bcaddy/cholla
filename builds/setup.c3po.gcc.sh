@@ -18,8 +18,9 @@
 # echo "mpicxx --version is: "
 # mpicxx --version
 
-# export MPI_GPU="-DMPI_GPU"
+export MPI_GPU="-DMPI_GPU"
 # export F_OFFLOAD="-fopenmp -foffload=nvptx-none='-lm -Ofast'"
-
-export CHOLLA_MACHINE=c3po
+export MPI_GPU="-DMPI_GPU"
+export F_OFFLOAD="-fopenmp -foffload=disable"
 export CHOLLA_ENVSET=1
+export CHOLLA_MACHINE=c3po
