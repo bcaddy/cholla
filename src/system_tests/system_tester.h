@@ -49,5 +49,15 @@ namespace systemTest
      */
     void systemTestRunAndLoad(H5::H5File &testDataFile);
     void systemTestDatasetIsConstant(H5::H5File &testDataFile, std::string datasetName, double value);
+    void systemTestDatasetIsSinusoid(H5::H5File &testDataFile,
+                                     std::string datasetName,
+                                     double constant,
+                                     double amplitude,
+                                     double kx,
+                                     double ky,
+                                     double kz,
+                                     double phase,
+				     double tolerance);
 
+  
 } // namespace systemTest
