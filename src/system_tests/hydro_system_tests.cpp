@@ -40,7 +40,7 @@ TEST(tHYDROSYSTEMSoundWave3D,
 {
   H5::H5File testDataFile;
   double time = 0.05;
-  double amplitude = 1e-4;
+  double amplitude = 1e-5;
   double dx = 1./64.;
     
   double real_kx = 2*PI;//kx of the physical problem
