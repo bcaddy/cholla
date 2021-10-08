@@ -150,7 +150,6 @@ namespace systemTest
 	    if (check_fiducial) {
 	      checkFileExists(fiducialDataFilePath);
 	    }
-            checkFileExists(fiducialDataFilePath);
         }
         // =====================================================================
     } // End Anonymous namespace
