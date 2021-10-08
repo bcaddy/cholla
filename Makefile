@@ -30,12 +30,10 @@ ifeq ($(TEST), true)
   $(info )
   SUFFIX    := $(strip $(SUFFIX)).tests
   CPPFILES  := $(filter-out src/main.cpp,$(CPPFILES))
-  TEST_FLAGS = -lgtest \
-               -I$(GOOGLETEST_ROOT)/include \
-               -L$(GOOGLETEST_ROOT)/lib64 \
-               -lpthread
+  LIBS      += -L$(GOOGLETEST_ROOT)/lib64 -lpthread -lgtest -lhdf5_cpp
+  TEST_FLAGS = -I$(GOOGLETEST_ROOT)/include
   CFLAGS   = $(TEST_FLAGS)
-  CXXFLAGS = $(TEST_FLAGS) -lhdf5_cpp
+  CXXFLAGS = $(TEST_FLAGS)
   GPUFLAGS = $(TEST_FLAGS)
 else
   # This isn't a test build so clear out testing related files

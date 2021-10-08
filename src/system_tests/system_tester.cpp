@@ -13,6 +13,7 @@
 #include <string>
 #include <sstream>
 #include <cstdio>
+#include <math.h> // Provides sin function
 
 // External Libraries and Headers
 #include <gtest/gtest.h>
@@ -139,7 +140,8 @@ namespace systemTest
             // TODO: C++17: When we update to C++17 or newer this section should
             // TODO: use std::filesystem to create the directory and check that
             // TODO: it exists
-            system(("mkdir " + outputDirectory).c_str());
+	    // mkdir -p checks if it exists 
+            system(("mkdir -p " + outputDirectory).c_str());
 
             // Check that the files exist
             checkFileExists(chollaPath);
@@ -367,8 +369,96 @@ namespace systemTest
 		} // for k
 	    } // for j
 	} // for i
-	
+    } // DatasetIsConstant
+    // =========================================================================
 
+    /* !brief Compares HDF5 dataset to a sinusoid of form f(i,j,k) = constant + amplitude * sin(kx*i+ky*j+kz*k+phase)
+     * 
+     */
+  
+    void systemTestDatasetIsSinusoid(H5::H5File &testDataFile,
+				     std::string datasetName,
+				     double constant,
+				     double amplitude,
+				     double kx,
+				     double ky,
+				     double kz,
+				     double phase,
+				     double tolerance){
+
+        // Load dataset
+        H5::DataSet const testDataSet     = testDataFile.openDataSet(datasetName);
+
+	// Set Dimensions
+	H5::DataSpace testDataSpace     = testDataSet.getSpace();
+	hsize_t testDims[3] = {1,1,1};
+	testDataSpace.getSimpleExtentDims(testDims);
+
+	// Load into double array 
+	double *testData = new double[testDims[0] * testDims[1] * testDims[2]]();
+	testDataSet.read(testData, H5::PredType::NATIVE_DOUBLE);
+
+	double l1norm = 0.0;
+	double l1max = 0.0;
+
+	bool print_toggle = true;
+	// Check if equal
+	// Compare values
+	for (size_t i = 0; i < testDims[0]; i++)
+	{
+	    for (size_t j = 0; j < testDims[1]; j++)
+	    {
+		for (size_t k = 0; k < testDims[2]; k++)
+	        {
+		    size_t index = (i * testDims[1] + j) * testDims[2] + k;
+		    
+		    // Check for equality and iff not equal return difference
+		    double absoluteDiff;
+		    int64_t ulpsDiff;
+
+		    double value = constant + amplitude*sin(kx*i+ky*j+kz*k+phase);
+		    
+		    bool areEqual = testingUtilities::nearlyEqualDbl(value,
+								     testData[index],
+								     absoluteDiff,
+								     ulpsDiff,
+								     4,
+								     tolerance);
+
+		    if (print_toggle) {
+		      
+		      EXPECT_TRUE(areEqual)
+			<< std::endl
+			<< "Difference in "
+			<< datasetName
+			<< " dataset at ["
+			<< i << "," << j << "," << k <<"]" << std::endl
+			<< "The fiducial value is:       " << value               << std::endl
+			<< "The test value is:           " << testData[index]     << std::endl
+			<< "The absolute difference is:  " << absoluteDiff        << std::endl
+			<< "The ULP difference is:       " << ulpsDiff            << std::endl;
+		    }
+
+		    // Only do the test until the first failure 
+		    if (print_toggle && !areEqual) {
+		      print_toggle = false;
+		    }
+		    
+		    l1norm += absoluteDiff;
+		    l1max = fmax(l1max,absoluteDiff);
+		} // for k
+	    } // for j
+	} // for i
+	std::cout << "\033[0;32m" << "[          ]" << "\033[0;0m" 
+		  << " dataset: " << datasetName
+		  << " l1_norm: " << l1norm
+		  << " l1_mean: " << l1norm/(testDims[0]*testDims[1]*testDims[2])
+		  << " l1_max : " << l1max
+		  << std::endl;
+	
+	
     }
+    // =========================================================================
+  
   
 } // namespace systemTest
