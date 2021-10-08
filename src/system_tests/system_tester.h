@@ -59,5 +59,4 @@ namespace systemTest
                                      double phase,
 				     double tolerance);
 
-  
 } // namespace systemTest

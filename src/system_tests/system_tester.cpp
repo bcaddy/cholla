@@ -118,6 +118,7 @@ namespace systemTest
                                         std::string &consoleOutputPath,
                                         std::string &testDataFilePath,
 					bool check_fiducial=true)
+
         {
             // Get the test name, with and underscore instead of a "." since
             // we're actually generating file names
@@ -149,6 +150,7 @@ namespace systemTest
 	    if (check_fiducial) {
 	      checkFileExists(fiducialDataFilePath);
 	    }
+            checkFileExists(fiducialDataFilePath);
         }
         // =====================================================================
     } // End Anonymous namespace

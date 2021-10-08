@@ -8,7 +8,7 @@ CXXFLAGS_OPTIMIZE = -Ofast -std=c++11 ${F_OFFLOAD}
 GPUFLAGS_DEBUG    = -g -O0 -std=c++11 -ccbin=mpicxx
 GPUFLAGS_OPTIMIZE = -g -O3 -std=c++11 -ccbin=mpicxx
 
-# OMP_NUM_THREADS   = 7
+OMP_NUM_THREADS   = 7
 
 #-- Library
 CUDA_ROOT       = /usr/local/cuda-11.4
