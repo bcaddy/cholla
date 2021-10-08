@@ -115,7 +115,8 @@ namespace systemTest
                                         std::string &fiducialDataFilePath,
                                         std::string &outputDirectory,
                                         std::string &consoleOutputPath,
-                                        std::string &testDataFilePath)
+                                        std::string &testDataFilePath,
+					bool check_fiducial=true)
         {
             // Get the test name, with and underscore instead of a "." since
             // we're actually generating file names
@@ -143,7 +144,9 @@ namespace systemTest
             // Check that the files exist
             checkFileExists(chollaPath);
             checkFileExists(chollaSettingsPath);
-            checkFileExists(fiducialDataFilePath);
+	    if (check_fiducial) {
+	      checkFileExists(fiducialDataFilePath);
+	    }
         }
         // =====================================================================
     } // End Anonymous namespace
@@ -277,4 +280,95 @@ namespace systemTest
         } // End Dataset loop
     }
     // =========================================================================
+
+    void systemTestRunAndLoad(H5::H5File &testDataFile)
+    {
+        // Determine paths for everything and check that files exist
+        std::string chollaPath,
+                    chollaSettingsPath,
+                    fiducialDataFilePath,
+                    outputDirectory,
+                    consoleOutputPath,
+                    testDataFilePath;
+        generatePathsAndCheckFiles(chollaPath,
+                                   chollaSettingsPath,
+                                   fiducialDataFilePath,
+                                   outputDirectory,
+                                   consoleOutputPath,
+                                   testDataFilePath,
+				   false);
+
+        // Launch Cholla asynchronously. Note that this dumps all console output
+        // to the console log file as requested by the user. The parallel launch
+        // might not actually speed things up at all. This is the first place to
+        // look for performance improvements
+        std::string const chollaRunCommand = chollaPath + " "
+                                             + chollaSettingsPath + " "
+                                             + "outdir=" + outputDirectory + "/"
+                                             + " >> " + consoleOutputPath + " 2>&1 ";
+        auto chollaProcess = std::async(std::launch::async, // Launch operation asynchronously rather than with lazy execution
+                                        system,             // Choose the function to launch
+                                        (chollaRunCommand).c_str()); // Args to send to "system" call
+
+        // Wait for Cholla to Complete and copy output files to the test
+        // directory
+        chollaProcess.get();
+        safeMove("run_output.log", outputDirectory);
+        safeMove("run_timing.log", outputDirectory);
+
+        // Load test data
+        checkFileExists(testDataFilePath);
+        int testNSteps;
+        loadHDF5(testDataFilePath, testNSteps, testDataFile);
+
+    }
+    // =========================================================================
+
+    void systemTestDatasetIsConstant(H5::H5File &testDataFile, std::string datasetName, double value){
+        // Load dataset
+        H5::DataSet const testDataSet     = testDataFile.openDataSet(datasetName);
+
+	// Set Dimensions
+	H5::DataSpace testDataSpace     = testDataSet.getSpace();
+	hsize_t testDims[3] = {1,1,1};
+	testDataSpace.getSimpleExtentDims(testDims);
+
+	// Load into double array 
+	double *testData = new double[testDims[0] * testDims[1] * testDims[2]]();
+	testDataSet.read(testData, H5::PredType::NATIVE_DOUBLE);
+
+	// Check if equal
+	// Compare values
+	for (size_t i = 0; i < testDims[0]; i++)
+	{
+	    for (size_t j = 0; j < testDims[1]; j++)
+	    {
+		for (size_t k = 0; k < testDims[2]; k++)
+	        {
+		    size_t index = (i * testDims[1] + j) * testDims[2] + k;
+		    
+		    // Check for equality and iff not equal return difference
+		    double absoluteDiff;
+		    int64_t ulpsDiff;
+		    bool areEqual = testingUtilities::nearlyEqualDbl(value,
+								     testData[index],
+								     absoluteDiff,
+								     ulpsDiff);
+		    ASSERT_TRUE(areEqual)
+		      << std::endl
+		      << "Difference in "
+		      << datasetName
+		      << " dataset at ["
+		      << i << "," << j << "," << k <<"]" << std::endl
+		      << "The fiducial value is:       " << value               << std::endl
+		      << "The test value is:           " << testData[index]     << std::endl
+		      << "The absolute difference is:  " << absoluteDiff        << std::endl
+		      << "The ULP difference is:       " << ulpsDiff            << std::endl;
+		} // for k
+	    } // for j
+	} // for i
+	
+
+    }
+  
 } // namespace systemTest

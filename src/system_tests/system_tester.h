@@ -7,6 +7,8 @@
  */
 
 #pragma once
+#include <string>
+#include <H5Cpp.h>
 
 /*!
  * \brief The namespace that contains the function for running system tests.
@@ -41,4 +43,11 @@ namespace systemTest
      *
      */
     void systemTestRunner();
+
+    /*!
+     * \brief First half of systemTest which runs cholla and loads the HDF5 output
+     */
+    void systemTestRunAndLoad(H5::H5File &testDataFile);
+    void systemTestDatasetIsConstant(H5::H5File &testDataFile, std::string datasetName, double value);
+
 } // namespace systemTest
