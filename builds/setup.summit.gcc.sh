@@ -6,7 +6,7 @@
 
 #-- Using latest GCC in User Managed Software (UMS) and latest CUDA
 #   on Summit
-module load gcc/10.2.0 cuda/11.2.0 fftw hdf5 python googletest/1.11.0
+module load gcc/10.2.0 cuda/11.2.0 fftw hdf5 python
 
 GCC_UMS_DIR=/sw/summit/ums/stf010/gcc/10.2.1-20210504
 #latest=$(ls --color=never ${GCC_UMS_DIR} | tail -n1)
