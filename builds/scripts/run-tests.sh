@@ -53,7 +53,11 @@ setupTests ()
 
   # Determine the hostname then use that to pick the right machine name and launch
   # command
-  FQDN=$(hostname --fqdn)
+  if [[ -n ${CHOLLA_MACHINE+x} ]]; then
+    FQDN=$CHOLLA_MACHINE
+  else
+    FQDN=$(hostname --fqdn)
+  fi
 
   case $FQDN in
     *summit* | *peak*)
@@ -76,6 +80,10 @@ setupTests ()
       ;;
     *c3po*)
       export CHOLLA_MACHINE='c3po'
+      export CHOLLA_LAUNCH_COMMAND=''
+      ;;
+    *github*)
+      export CHOLLA_MACHINE='github'
       export CHOLLA_LAUNCH_COMMAND=''
       ;;
     *)
