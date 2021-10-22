@@ -1,8 +1,6 @@
 name: Cholla Automated Testing
 
 on:
-  push:
-    branches: [ CAAR-testing ]
   pull_request:
     branches: [ CAAR-testing ]
   workflow_dispatch:
