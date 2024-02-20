@@ -7,6 +7,9 @@
 #include "../utils/basic_structs.h"
 #include "../utils/hydro_utilities.h"
 
+#include "../utils/basic_structs.h"
+#include "../utils/hydro_utilities.h"
+
 namespace reconstruction
 {
 /*!
