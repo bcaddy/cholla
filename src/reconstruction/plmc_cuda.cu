@@ -117,13 +117,27 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
 
   // Apply monotonicity constraints to the differences in the characteristic variables and project the monotonized
   // difference in the characteristic variables back onto the primitive variables Stone Eqn 39
-  hydro_utilities::Primitive del_m_i = reconstruction::Monotonize_Characteristic_Return_Primitive(
-      cell_i, del_L, del_R, del_C, del_G, del_a_L, del_a_R, del_a_C, del_a_G, eigenvectors, sound_speed,
-      sound_speed_squared, gamma);
+  reconstruction::Characteristic const del_a_m = reconstruction::Van_Leer_Limiter(del_a_L, del_a_R, del_a_C, del_a_G);
+
+  // Project back into the primitive variables.
+  hydro_utilities::Primitive del_m =
+      Characteristic_To_Primitive(cell_i, del_a_m, eigenvectors, sound_speed, sound_speed_squared, gamma);
+
+  // Limit the variables that aren't transformed by the characteristic projection
+#ifdef DE
+  del_m.gas_energy_specific = Van_Leer_Limiter(del_L.gas_energy_specific, del_R.gas_energy_specific,
+                                               del_C.gas_energy_specific, del_G.gas_energy_specific);
+#endif  // DE
+#ifdef SCALAR
+  for (int i = 0; i < NSCALARS; i++) {
+    del_m.scalar_specific[i] = Van_Leer_Limiter(del_L.scalar_specific[i], del_R.scalar_specific[i],
+                                                del_C.scalar_specific[i], del_G.scalar_specific[i]);
+  }
+#endif  // SCALAR
 
   // Compute the left and right interface values using the monotonized difference in the primitive variables
-  hydro_utilities::Primitive interface_L_iph = reconstruction::Calc_Interface_Linear(cell_i, del_m_i, 1.0);
-  hydro_utilities::Primitive interface_R_imh = reconstruction::Calc_Interface_Linear(cell_i, del_m_i, -1.0);
+  hydro_utilities::Primitive interface_L_iph = reconstruction::Calc_Interface_Linear(cell_i, del_m, 1.0);
+  hydro_utilities::Primitive interface_R_imh = reconstruction::Calc_Interface_Linear(cell_i, del_m, -1.0);
 
 #ifndef VL
 
@@ -152,14 +166,14 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
   interface_L_iph.pressure     = interface_L_iph.pressure - qx * del_m_i.pressure;
 
   #ifdef DE
-  interface_R_imh.gas_energy_specific = interface_R_imh.gas_energy_specific + qx * del_m_i.gas_energy_specific;
-  interface_L_iph.gas_energy_specific = interface_L_iph.gas_energy_specific - qx * del_m_i.gas_energy_specific;
+  interface_R_imh.gas_energy_specific = interface_R_imh.gas_energy_specific + qx * del_m.gas_energy_specific;
+  interface_L_iph.gas_energy_specific = interface_L_iph.gas_energy_specific - qx * del_m.gas_energy_specific;
   #endif  // DE
 
   #ifdef SCALAR
   for (int i = 0; i < NSCALARS; i++) {
-    interface_R_imh.scalar[i] = interface_R_imh.scalar[i] + qx * del_m_i.scalar[i];
-    interface_L_iph.scalar[i] = interface_L_iph.scalar[i] - qx * del_m_i.scalar[i];
+    interface_R_imh.scalar[i] = interface_R_imh.scalar[i] + qx * del_m.scalar[i];
+    interface_L_iph.scalar[i] = interface_L_iph.scalar[i] - qx * del_m.scalar[i];
   }
   #endif  // SCALAR
 
@@ -192,11 +206,11 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
     sum_2 += lamdiff * del_m_i.velocity.y();
     sum_3 += lamdiff * del_m_i.velocity.z();
   #ifdef DE
-    sum_ge += lamdiff * del_m_i.gas_energy_specific;
+    sum_ge += lamdiff * del_m.gas_energy_specific;
   #endif  // DE
   #ifdef SCALAR
     for (int i = 0; i < NSCALARS; i++) {
-      sum_scalar[i] += lamdiff * del_m_i.scalar[i];
+      sum_scalar[i] += lamdiff * del_m.scalar[i];
     }
   #endif  // SCALAR
   }
@@ -249,11 +263,11 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
     sum_2 += lamdiff * del_m_i.velocity.y();
     sum_3 += lamdiff * del_m_i.velocity.z();
   #ifdef DE
-    sum_ge += lamdiff * del_m_i.gas_energy_specific;
+    sum_ge += lamdiff * del_m.gas_energy_specific;
   #endif  // DE
   #ifdef SCALAR
     for (int i = 0; i < NSCALARS; i++) {
-      sum_scalar[i] += lamdiff * del_m_i.scalar[i];
+      sum_scalar[i] += lamdiff * del_m.scalar[i];
     }
   #endif  // SCALAR
   }
