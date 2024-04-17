@@ -61,7 +61,7 @@ auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xi
   hydro_utilities::Primitive const del_C = reconstruction::Compute_Slope(cell_imo, cell_ipo, 0.5);
 
   // Van Leer
-  hydro_utilities::Primitive const del_G = reconstruction::Van_Leer_Slope(del_L, del_R);
+  hydro_utilities::Primitive const del_G = reconstruction::Compute_Van_Leer_Slope(del_L, del_R);
 
   // Project the left, right, centered and van Leer differences onto the
   // characteristic variables Stone Eqn 37 (del_a are differences in
@@ -101,9 +101,6 @@ auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xi
   // Compute the left and right interface values using the monotonized difference in the primitive variables
   hydro_utilities::Primitive interface_L_iph = reconstruction::Calc_Interface_Linear(cell_i, del_m, 1.0);
   hydro_utilities::Primitive interface_R_imh = reconstruction::Calc_Interface_Linear(cell_i, del_m, -1.0);
-
-  // Limit the interfaces
-  reconstruction::Plm_Limit_Interfaces(interface_L_iph, interface_R_imh, cell_imo, cell_i, cell_ipo);
 
 #ifndef VL
 
