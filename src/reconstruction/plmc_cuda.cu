@@ -15,11 +15,6 @@
   #include "../utils/hydro_utilities.h"
 #endif  // DE
 
-/*! \fn __global__ void PLMC_cuda(Real *dev_conserved, Real *dev_bounds_L, Real
- *dev_bounds_R, int nx, int ny, int nz, Real dx, Real dt, Real
- gamma, int dir)
- *  \brief When passed a stencil of conserved variables, returns the left and
- right boundary values for the interface calculated using plm. */
 template <int dir>
 __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
                                                  int ny, int nz, Real dx, Real dt, Real gamma)
