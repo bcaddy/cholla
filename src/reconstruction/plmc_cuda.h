@@ -208,7 +208,8 @@ void __device__ __host__ __inline__ PLMC_Characteristic_Evolution(hydro_utilitie
  * \param dx The width of the cells in the direction of the solve
  * \param dt The time step
  * \param gamma The adiabatic index
- * \return auto A local struct which returns the left interface at i+1/2 and the right interface at i-1/2 in that order.
+ * \return auto A local struct which returns the left primitive interface at i+1/2 and the right primitive interface at
+ * i-1/2 in that order.
  */
 template <uint direction>
 auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xid, int const yid, int const zid,
