@@ -620,6 +620,52 @@ Characteristic __device__ __host__ __inline__ Van_Leer_Limiter(Characteristic co
 
 // =====================================================================================================================
 /*!
+ * \brief Limit the primitive slopes. This is an overload that take reconstruction::Primitive variables instead
+ * of Reals as arguments.
+ *
+ * \param[in] del_L The left primitive slopes
+ * \param[in] del_R The right primitive slopes
+ * \param[in] del_C The centered primitive slopes
+ * \param[in] del_G The Van Leer primitive slopes
+ * \return hydro_utilities::Primitive The limited primitive slopes
+ */
+hydro_utilities::Primitive __device__ __host__ __inline__ Van_Leer_Limiter(hydro_utilities::Primitive const &del_L,
+                                                                           hydro_utilities::Primitive const &del_R,
+                                                                           hydro_utilities::Primitive const &del_C,
+                                                                           hydro_utilities::Primitive const &del_G)
+{
+  // the monotonized difference in the primitive variables
+  hydro_utilities::Primitive del_m;
+
+  // Monotonize the slopes
+  del_m.density    = Van_Leer_Limiter(del_L.density, del_R.density, del_C.density, del_G.density);
+  del_m.velocity.x = Van_Leer_Limiter(del_L.velocity.x, del_R.velocity.x, del_C.velocity.x, del_G.velocity.x);
+  del_m.velocity.y = Van_Leer_Limiter(del_L.velocity.y, del_R.velocity.y, del_C.velocity.y, del_G.velocity.y);
+  del_m.velocity.z = Van_Leer_Limiter(del_L.velocity.z, del_R.velocity.z, del_C.velocity.z, del_G.velocity.z);
+  del_m.pressure   = Van_Leer_Limiter(del_L.pressure, del_R.pressure, del_C.pressure, del_G.pressure);
+
+#ifdef MHD
+  del_m.magnetic.y = Van_Leer_Limiter(del_L.magnetic.y, del_R.magnetic.y, del_C.magnetic.y, del_G.magnetic.y);
+  del_m.magnetic.z = Van_Leer_Limiter(del_L.magnetic.z, del_R.magnetic.z, del_C.magnetic.z, del_G.magnetic.z);
+#endif  // MHD
+
+#ifdef DE
+  del_m.gas_energy_specific = Van_Leer_Limiter(del_L.gas_energy_specific, del_R.gas_energy_specific,
+                                               del_C.gas_energy_specific, del_G.gas_energy_specific);
+#endif  // DE
+#ifdef SCALAR
+  for (int i = 0; i < NSCALARS; i++) {
+    del_m.scalar_specific[i] = Van_Leer_Limiter(del_L.scalar_specific[i], del_R.scalar_specific[i],
+                                                del_C.scalar_specific[i], del_G.scalar_specific[i]);
+  }
+#endif  // SCALAR
+
+  return del_m;
+}
+// =====================================================================================================================
+
+// =====================================================================================================================
+/*!
  * \brief Monotonize the parabolic interface states
  *
  * \param[in] cell_i The state in cell i

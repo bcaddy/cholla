@@ -252,6 +252,7 @@ auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xi
   // Van Leer
   hydro_utilities::Primitive const del_G = reconstruction::Compute_Van_Leer_Slope(del_L, del_R);
 
+#ifdef PLMC
   // Project the left, right, centered and van Leer differences onto the
   // characteristic variables Stone Eqn 37 (del_a are differences in
   // characteristic variables, see Stone for notation) Use the eigenvectors
@@ -275,17 +276,20 @@ auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xi
   // Project back into the primitive variables.
   hydro_utilities::Primitive del_m = Characteristic_To_Primitive(cell_i, del_a_m, eigenvectors, gamma);
 
-  // Limit the variables that aren't transformed by the characteristic projection
-#ifdef DE
+    // Limit the variables that aren't transformed by the characteristic projection
+  #ifdef DE
   del_m.gas_energy_specific = Van_Leer_Limiter(del_L.gas_energy_specific, del_R.gas_energy_specific,
                                                del_C.gas_energy_specific, del_G.gas_energy_specific);
-#endif  // DE
-#ifdef SCALAR
+  #endif  // DE
+  #ifdef SCALAR
   for (int i = 0; i < NSCALARS; i++) {
     del_m.scalar_specific[i] = Van_Leer_Limiter(del_L.scalar_specific[i], del_R.scalar_specific[i],
                                                 del_C.scalar_specific[i], del_G.scalar_specific[i]);
   }
-#endif  // SCALAR
+  #endif  // SCALAR
+#else     // PLMP
+  hydro_utilities::Primitive const del_m = reconstruction::Van_Leer_Limiter(del_L, del_R, del_C, del_G);
+#endif    // PLMC
 
   // Compute the left and right interface values using the monotonized difference in the primitive variables
   hydro_utilities::Primitive interface_L_iph = reconstruction::Calc_Interface_Linear(cell_i, del_m, 1.0);
