@@ -295,6 +295,12 @@ auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xi
   PLMC_Characteristic_Evolution(cell_i, del_m, dt, dx, eigenvectors.sound_speed, interface_R_imh, interface_L_iph);
 #endif  // VL
 
+  // apply minimum constraints
+  interface_R_imh.density  = fmax(interface_R_imh.density, (Real)TINY_NUMBER);
+  interface_L_iph.density  = fmax(interface_L_iph.density, (Real)TINY_NUMBER);
+  interface_R_imh.pressure = fmax(interface_R_imh.pressure, (Real)TINY_NUMBER);
+  interface_L_iph.pressure = fmax(interface_L_iph.pressure, (Real)TINY_NUMBER);
+
   struct LocalReturnStruct {
     hydro_utilities::Primitive left, right;
   };
