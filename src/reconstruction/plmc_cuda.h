@@ -11,17 +11,28 @@
 #include "../utils/hydro_utilities.h"
 #include "../utils/mhd_utilities.h"
 
-/*! \fn __global__ void PLMC_cuda(Real *dev_conserved, Real *dev_bounds_L, Real
- *dev_bounds_R, int nx, int ny, int nz, int n_ghost, Real dx, Real dt, Real
- gamma, int dir)
- *  \brief When passed a stencil of conserved variables, returns the left and
- right boundary values for the interface calculated using plm. */
+/*!
+ * \brief Performs second order reconstruction using limiting in the characteristic variables
+ *
+ * \tparam dir The direction that the solve is taking place in. 0=X, 1=Y, 2=Z
+ */
 template <int dir>
 __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
                                                  int ny, int nz, Real dx, Real dt, Real gamma);
 
 namespace reconstruction
 {
+/*!
+ * \brief Perform characteristic tracing/evolution on an interface
+ *
+ * \param[in] cell_i The cell state at cell i
+ * \param[in] del_m The limited slopes
+ * \param[in] dt The time step
+ * \param[in] dx The cell size in the direction of solve
+ * \param[in] sound_speed The sound speed in cell i
+ * \param interface_R_imh The R interface at i-1/2
+ * \param interface_L_iph The L interface at i+1/2
+ */
 void __device__ __host__ __inline__ PLMC_Characteristic_Evolution(hydro_utilities::Primitive const &cell_i,
                                                                   hydro_utilities::Primitive const &del_m,
                                                                   Real const dt, Real const dx, Real const sound_speed,
@@ -183,6 +194,22 @@ void __device__ __host__ __inline__ PLMC_Characteristic_Evolution(hydro_utilitie
 #endif  // SCALAR
 }
 
+/*!
+ * \brief This is the device function that actually does the piecewise linear reconstruction.
+ *
+ * \tparam direction The direction that the solve is taking place in. 0=X, 1=Y, 2=Z
+ * \param dev_conserved The conserved variable array
+ * \param xid The x index of the cell in the center of the stencil
+ * \param yid The y index of the cell in the center of the stencil
+ * \param zid The z index of the cell in the center of the stencil
+ * \param nx The number of cells in the x-direction
+ * \param ny The number of cells in the y-direction
+ * \param nz The number of cells in the z-direction
+ * \param dx The width of the cells in the direction of the solve
+ * \param dt The time step
+ * \param gamma The adiabatic index
+ * \return auto A local struct which returns the left interface at i+1/2 and the right interface at i-1/2 in that order.
+ */
 template <uint direction>
 auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xid, int const yid, int const zid,
                                                int const nx, int const ny, int const nz, Real const dx, Real const dt,
