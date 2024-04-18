@@ -1,6 +1,6 @@
-/*! \file plmc_cuda.h
- *  \brief Declarations of the cuda plm kernels, characteristic reconstruction
- * version. */
+/*! \file plm_cuda.h
+ *  \brief Declarations of the cuda plm kernels
+ */
 
 #ifndef PLMC_CUDA_H
 #define PLMC_CUDA_H
@@ -12,13 +12,13 @@
 #include "../utils/mhd_utilities.h"
 
 /*!
- * \brief Performs second order reconstruction using limiting in the characteristic variables
+ * \brief Performs second order reconstruction using limiting in the characteristic or primitive variables
  *
  * \tparam dir The direction that the solve is taking place in. 0=X, 1=Y, 2=Z
  */
 template <int dir>
-__global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
-                                                 int ny, int nz, Real dx, Real dt, Real gamma);
+__global__ __launch_bounds__(TPB) void PLM_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
+                                                int ny, int nz, Real dx, Real dt, Real gamma);
 
 namespace reconstruction
 {
@@ -212,9 +212,9 @@ void __device__ __host__ __inline__ PLMC_Characteristic_Evolution(hydro_utilitie
  * i-1/2 in that order.
  */
 template <uint direction>
-auto __device__ __inline__ PLMC_Reconstruction(Real *dev_conserved, int const xid, int const yid, int const zid,
-                                               int const nx, int const ny, int const nz, Real const dx, Real const dt,
-                                               Real const gamma)
+auto __device__ __inline__ PLM_Reconstruction(Real *dev_conserved, int const xid, int const yid, int const zid,
+                                              int const nx, int const ny, int const nz, Real const dx, Real const dt,
+                                              Real const gamma)
 {
   // Compute the total number of cells
   int const n_cells = nx * ny * nz;
