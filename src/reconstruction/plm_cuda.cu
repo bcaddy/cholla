@@ -1,13 +1,12 @@
-/*! \file plmc_cuda.cu
- *  \brief Definitions of the piecewise linear reconstruction functions with
-           limiting applied in the characteristic variables, as described
-           in Stone et al., 2008. */
+/*! \file plm_cuda.cu
+ *  \brief Definitions of the piecewise linear reconstruction functions, as described in Stone et al., 2008.
+ */
 
 #include <math.h>
 
 #include "../global/global.h"
 #include "../global/global_cuda.h"
-#include "../reconstruction/plmc_cuda.h"
+#include "../reconstruction/plm_cuda.h"
 #include "../utils/cuda_utilities.h"
 #include "../utils/gpu.hpp"
 
@@ -16,8 +15,8 @@
 #endif  // DE
 
 template <int dir>
-__global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
-                                                 int ny, int nz, Real dx, Real dt, Real gamma)
+__global__ __launch_bounds__(TPB) void PLM_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
+                                                int ny, int nz, Real dx, Real dt, Real gamma)
 {
   // get a thread ID
   int const thread_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -30,7 +29,7 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
   }
 
   auto [interface_L_iph, interface_R_imh] =
-      reconstruction::PLMC_Reconstruction<dir>(dev_conserved, xid, yid, zid, nx, ny, nz, dx, dt, gamma);
+      reconstruction::PLM_Reconstruction<dir>(dev_conserved, xid, yid, zid, nx, ny, nz, dx, dt, gamma);
 
   // Set the field indices for the various directions
   int o1, o2, o3;
@@ -61,12 +60,9 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
 }
 
 // Instantiate the relevant template specifications
-template __global__ __launch_bounds__(TPB) void PLMC_cuda<0>(Real *dev_conserved, Real *dev_bounds_L,
-                                                             Real *dev_bounds_R, int nx, int ny, int nz, Real dx,
-                                                             Real dt, Real gamma);
-template __global__ __launch_bounds__(TPB) void PLMC_cuda<1>(Real *dev_conserved, Real *dev_bounds_L,
-                                                             Real *dev_bounds_R, int nx, int ny, int nz, Real dx,
-                                                             Real dt, Real gamma);
-template __global__ __launch_bounds__(TPB) void PLMC_cuda<2>(Real *dev_conserved, Real *dev_bounds_L,
-                                                             Real *dev_bounds_R, int nx, int ny, int nz, Real dx,
-                                                             Real dt, Real gamma);
+template __global__ __launch_bounds__(TPB) void PLM_cuda<0>(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R,
+                                                            int nx, int ny, int nz, Real dx, Real dt, Real gamma);
+template __global__ __launch_bounds__(TPB) void PLM_cuda<1>(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R,
+                                                            int nx, int ny, int nz, Real dx, Real dt, Real gamma);
+template __global__ __launch_bounds__(TPB) void PLM_cuda<2>(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R,
+                                                            int nx, int ny, int nz, Real dx, Real dt, Real gamma);

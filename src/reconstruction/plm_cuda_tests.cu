@@ -1,6 +1,6 @@
 /*!
- * \file plmc_cuda_tests.cu
- * \brief Tests for the contents of plmc_cuda.h and plmc_cuda.cu
+ * \file plm_cuda_tests.cu
+ * \brief Tests for the contents of plm_cuda.h and plm_cuda.cu
  *
  */
 
@@ -18,7 +18,7 @@
 
 #include "../global/global.h"
 #include "../io/io.h"
-#include "../reconstruction/plmc_cuda.h"
+#include "../reconstruction/plm_cuda.h"
 #include "../utils/DeviceVector.h"
 #include "../utils/hydro_utilities.h"
 #include "../utils/testing_utilities.h"
@@ -150,15 +150,15 @@ TEST(tHYDROPlmcReconstructor, CorrectInputExpectCorrectOutput)
     // Launch kernel
     switch (direction) {
       case 0:
-        hipLaunchKernelGGL(PLMC_cuda<0>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PLM_cuda<0>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx_rot, ny_rot, nz_rot, dx, dt, gamma);
         break;
       case 1:
-        hipLaunchKernelGGL(PLMC_cuda<1>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PLM_cuda<1>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx_rot, ny_rot, nz_rot, dx, dt, gamma);
         break;
       case 2:
-        hipLaunchKernelGGL(PLMC_cuda<2>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PLM_cuda<2>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx_rot, ny_rot, nz_rot, dx, dt, gamma);
         break;
     }
@@ -275,15 +275,15 @@ TEST(tMHDPlmcReconstructor, CorrectInputExpectCorrectOutput)
     // Launch kernel
     switch (direction) {
       case 0:
-        hipLaunchKernelGGL(PLMC_cuda<0>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PLM_cuda<0>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx, ny, nz, dx, dt, gamma);
         break;
       case 1:
-        hipLaunchKernelGGL(PLMC_cuda<1>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PLM_cuda<1>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx, ny, nz, dx, dt, gamma);
         break;
       case 2:
-        hipLaunchKernelGGL(PLMC_cuda<2>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PLM_cuda<2>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx, ny, nz, dx, dt, gamma);
         break;
     }
