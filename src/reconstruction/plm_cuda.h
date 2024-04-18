@@ -29,17 +29,18 @@ namespace reconstruction
  * \param[in] del_m The limited slopes
  * \param[in] dt The time step
  * \param[in] dx The cell size in the direction of solve
- * \param[in] sound_speed The sound speed in cell i
+ * \param[in] gamma The adiabatic index
  * \param interface_R_imh The R interface at i-1/2
  * \param interface_L_iph The L interface at i+1/2
  */
 void __device__ __host__ __inline__ PLMC_Characteristic_Evolution(hydro_utilities::Primitive const &cell_i,
                                                                   hydro_utilities::Primitive const &del_m,
-                                                                  Real const dt, Real const dx, Real const sound_speed,
+                                                                  Real const dt, Real const dx, Real const gamma,
                                                                   hydro_utilities::Primitive &interface_R_imh,
                                                                   hydro_utilities::Primitive &interface_L_iph)
 {
-  Real const dtodx = dt / dx;
+  Real const dtodx       = dt / dx;
+  Real const sound_speed = hydro_utilities::Calc_Sound_Speed(cell_i.pressure, cell_i.density, gamma);
 
   // Compute the eigenvalues of the linearized equations in the
   // primitive variables using the cell-centered primitive variables
@@ -234,9 +235,6 @@ auto __device__ __inline__ PLM_Reconstruction(Real *dev_conserved, int const xid
       dev_conserved, xid + int(direction == 0), yid + int(direction == 1), zid + int(direction == 2), nx, ny, n_cells,
       gamma);
 
-  // Compute the eigenvectors
-  reconstruction::EigenVecs const eigenvectors = reconstruction::Compute_Eigenvectors(cell_i, gamma);
-
   // Compute the left, right, centered, and van Leer differences of the primitive variables Note that here L and R refer
   // to locations relative to the cell center
 
@@ -253,6 +251,9 @@ auto __device__ __inline__ PLM_Reconstruction(Real *dev_conserved, int const xid
   hydro_utilities::Primitive const del_G = reconstruction::Compute_Van_Leer_Slope(del_L, del_R);
 
 #ifdef PLMC
+  // Compute the eigenvectors
+  reconstruction::EigenVecs const eigenvectors = reconstruction::Compute_Eigenvectors(cell_i, gamma);
+
   // Project the left, right, centered and van Leer differences onto the
   // characteristic variables Stone Eqn 37 (del_a are differences in
   // characteristic variables, see Stone for notation) Use the eigenvectors
@@ -297,7 +298,7 @@ auto __device__ __inline__ PLM_Reconstruction(Real *dev_conserved, int const xid
 
 // Do the characteristic tracing
 #ifndef VL
-  PLMC_Characteristic_Evolution(cell_i, del_m, dt, dx, eigenvectors.sound_speed, interface_R_imh, interface_L_iph);
+  PLMC_Characteristic_Evolution(cell_i, del_m, dt, dx, gamma, interface_R_imh, interface_L_iph);
 #endif  // VL
 
   // apply minimum constraints
