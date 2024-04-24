@@ -33,11 +33,11 @@ namespace reconstruction
  * \param interface_R_imh The R interface at i-1/2
  * \param interface_L_iph The L interface at i+1/2
  */
-void __device__ __host__ __inline__ PLMC_Characteristic_Evolution(hydro_utilities::Primitive const &cell_i,
-                                                                  hydro_utilities::Primitive const &del_m,
-                                                                  Real const dt, Real const dx, Real const gamma,
-                                                                  hydro_utilities::Primitive &interface_R_imh,
-                                                                  hydro_utilities::Primitive &interface_L_iph)
+void __device__ __host__ __inline__ PLM_Characteristic_Evolution(hydro_utilities::Primitive const &cell_i,
+                                                                 hydro_utilities::Primitive const &del_m, Real const dt,
+                                                                 Real const dx, Real const gamma,
+                                                                 hydro_utilities::Primitive &interface_R_imh,
+                                                                 hydro_utilities::Primitive &interface_L_iph)
 {
   Real const dtodx       = dt / dx;
   Real const sound_speed = hydro_utilities::Calc_Sound_Speed(cell_i.pressure, cell_i.density, gamma);
@@ -298,7 +298,7 @@ auto __device__ __inline__ PLM_Reconstruction(Real *dev_conserved, int const xid
 
 // Do the characteristic tracing
 #ifndef VL
-  PLMC_Characteristic_Evolution(cell_i, del_m, dt, dx, gamma, interface_R_imh, interface_L_iph);
+  PLM_Characteristic_Evolution(cell_i, del_m, dt, dx, gamma, interface_R_imh, interface_L_iph);
 #endif  // VL
 
   // apply minimum constraints
