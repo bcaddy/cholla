@@ -255,13 +255,13 @@ void VL_Algorithm_3D_CUDA(Real *d_conserved, Real *d_grav_potential, int nx, int
                      dev_conserved_half, Q_Lz, Q_Rz, nx, ny, nz, n_ghost, dz, dt, gama, 2, n_fields);
   #endif  // PPMP
   #ifdef PPMC
-  cuda_utilities::AutomaticLaunchParams static const ppmc_vl_launch_params(PPMC_VL<0>, n_cells);
-  hipLaunchKernelGGL(PPMC_VL<0>, ppmc_vl_launch_params.get_numBlocks(), ppmc_vl_launch_params.get_threadsPerBlock(), 0,
-                     0, dev_conserved_half, Q_Lx, Q_Rx, nx, ny, nz, gama);
-  hipLaunchKernelGGL(PPMC_VL<1>, ppmc_vl_launch_params.get_numBlocks(), ppmc_vl_launch_params.get_threadsPerBlock(), 0,
-                     0, dev_conserved_half, Q_Ly, Q_Ry, nx, ny, nz, gama);
-  hipLaunchKernelGGL(PPMC_VL<2>, ppmc_vl_launch_params.get_numBlocks(), ppmc_vl_launch_params.get_threadsPerBlock(), 0,
-                     0, dev_conserved_half, Q_Lz, Q_Rz, nx, ny, nz, gama);
+  cuda_utilities::AutomaticLaunchParams static const ppmc_vl_launch_params(PPMC_cuda<0>, n_cells);
+  hipLaunchKernelGGL(PPMC_cuda<0>, ppmc_vl_launch_params.get_numBlocks(), ppmc_vl_launch_params.get_threadsPerBlock(),
+                     0, 0, dev_conserved_half, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
+  hipLaunchKernelGGL(PPMC_cuda<1>, ppmc_vl_launch_params.get_numBlocks(), ppmc_vl_launch_params.get_threadsPerBlock(),
+                     0, 0, dev_conserved_half, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
+  hipLaunchKernelGGL(PPMC_cuda<2>, ppmc_vl_launch_params.get_numBlocks(), ppmc_vl_launch_params.get_threadsPerBlock(),
+                     0, 0, dev_conserved_half, Q_Lz, Q_Rz, nx, ny, nz, dz, dt, gama);
   #endif  // PPMC
   GPU_Error_Check();
 

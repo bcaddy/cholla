@@ -62,7 +62,7 @@ void Simple_Algorithm_1D_CUDA(Real *d_conserved, int nx, int x_off, int n_ghost,
   GPU_Error_Check();
 #endif
 #ifdef PPMC
-  hipLaunchKernelGGL(PPMC_CTU<0>, dimGrid, dimBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
+  hipLaunchKernelGGL(PPMC_cuda<0>, dimGrid, dimBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
   GPU_Error_Check();
 #endif
 
