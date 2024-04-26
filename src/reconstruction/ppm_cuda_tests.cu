@@ -1,6 +1,6 @@
 /*!
- * \file ppmc_cuda_tests.cu
- * \brief Tests for the contents of ppmc_cuda.h and ppmc_cuda.cu
+ * \file ppm_cuda_tests.cu
+ * \brief Tests for the contents of ppm_cuda.h and ppm_cuda.cu
  *
  */
 
@@ -17,12 +17,12 @@
 // Local Includes
 #include "../global/global.h"
 #include "../io/io.h"
-#include "../reconstruction/ppmc_cuda.h"
+#include "../reconstruction/ppm_cuda.h"
 #include "../utils/DeviceVector.h"
 #include "../utils/hydro_utilities.h"
 #include "../utils/testing_utilities.h"
 
-TEST(tALLPpmcVLReconstructor, CorrectInputExpectCorrectOutput)
+TEST(tALLPpmReconstructor, CorrectInputExpectCorrectOutput)
 {
 #ifdef DE
   /// This test doesn't support Dual Energy. It wouldn't be that hard to add support for DE but the DE parts of the
@@ -58,6 +58,7 @@ TEST(tALLPpmcVLReconstructor, CorrectInputExpectCorrectOutput)
 
 // Fiducial Data
 #ifdef MHD
+  #ifdef PPMC
   std::vector<std::unordered_map<int, double>> fiducial_interface_left = {{{86, 3.6926886385390683},
                                                                            {302, 2.3022467009220993},
                                                                            {518, 2.3207781368125389},
@@ -101,7 +102,53 @@ TEST(tALLPpmcVLReconstructor, CorrectInputExpectCorrectOutput)
                                                                             {914, 14.017699282483312},
                                                                             {1130, 1.5292690020097823},
                                                                             {1346, -0.12121484974901264}}};
-#else   // not MHD
+  #else   // PPMC
+  std::vector<std::unordered_map<int, double>> fiducial_interface_left = {{{86, 3.1608646282711232},
+                                                                           {302, 0.84444422521258167},
+                                                                           {518, 1.2459789393105685},
+                                                                           {734, 2.2721401574613527},
+                                                                           {950, 7.7508629541568022},
+                                                                           {1166, 0.54567382624989913},
+                                                                           {1382, 3.5147238706385462}},
+                                                                          {{86, 3.6292858956631076},
+                                                                           {302, 1.8316886259802778},
+                                                                           {518, 2.2809308293670103},
+                                                                           {734, 3.6939841768696002},
+                                                                           {950, 10.405768833830281},
+                                                                           {1166, 3.5147238706385462},
+                                                                           {1382, 1.234487908582131}},
+                                                                          {{86, 3.1608646282711232},
+                                                                           {302, 0.84444422521258167},
+                                                                           {518, 1.9865377887960551},
+                                                                           {734, 1.1540870822905045},
+                                                                           {950, 4.8971025794015812},
+                                                                           {1166, 1.234487908582131},
+                                                                           {1382, 0.54567382624989913}}};
+
+  std::vector<std::unordered_map<int, double>> fiducial_interface_right = {{{301, 0.84444422521258167},
+                                                                            {85, 3.1608646282711232},
+                                                                            {733, 2.2721401574613527},
+                                                                            {517, 3.2701799807980008},
+                                                                            {949, 10.497902459040514},
+                                                                            {1165, 0.54567382624989913},
+                                                                            {1381, 3.5147238706385462}},
+                                                                           {{80, 2.245959460360242},
+                                                                            {296, 0.33326844362749702},
+                                                                            {512, 1.4115388872411132},
+                                                                            {728, 0.72702830835784316},
+                                                                            {944, 7.5422056995631559},
+                                                                            {1160, 3.5147238706385462},
+                                                                            {1376, 1.234487908582131}},
+                                                                           {{50, 3.1608646282711232},
+                                                                            {266, 0.84444422521258167},
+                                                                            {482, 1.9865377887960551},
+                                                                            {698, 4.1768690252280765},
+                                                                            {914, 14.823997016980297},
+                                                                            {1130, 1.234487908582131},
+                                                                            {1346, 0.54567382624989913}}};
+  #endif  // PPMC
+#else     // not MHD
+  #ifdef PPMC
   std::vector<std::unordered_map<int, double>> fiducial_interface_left = {
       {{86, 4.155160222900312}, {302, 1.1624633361407897}, {518, 1.6379195998743412}, {734, 2.9868746414179093}},
       {{86, 4.1795874335665655}, {302, 2.1094239978455054}, {518, 2.6811988240843849}, {734, 4.2540957888954054}},
@@ -122,7 +169,29 @@ TEST(tALLPpmcVLReconstructor, CorrectInputExpectCorrectOutput)
                                                                             {266, 0.75482470285166003},
                                                                             {482, 1.7757096932649317},
                                                                             {698, 3.6101832818706452}}};
-#endif  // MHD
+  #else   // PPMC
+  std::vector<std::unordered_map<int, double>> fiducial_interface_left = {
+      {{86, 3.1608646282711232}, {302, 0.84444422521258167}, {518, 1.2459789393105685}, {734, 2.2721401574613527}},
+      {{86, 3.6292858956631076}, {302, 1.8316886259802778}, {518, 2.2809308293670103}, {734, 3.6939841768696002}},
+      {{86, 3.1608646282711232}, {302, 0.84444422521258167}, {518, 1.9865377887960551}, {734, 1.1540870822905045}}};
+
+  std::vector<std::unordered_map<int, double>> fiducial_interface_right = {{{54, 3.4283787020401455},
+                                                                            {85, 3.1608646282711232},
+                                                                            {301, 0.84444422521258167},
+                                                                            {517, 3.2701799807980008},
+                                                                            {733, 2.2721401574613527}},
+                                                                           {{54, 5.3122571267813665},
+                                                                            {80, 2.245959460360242},
+                                                                            {296, 0.33326844362749702},
+                                                                            {512, 1.4115388872411132},
+                                                                            {728, 0.72702830835784316}},
+                                                                           {{50, 3.1608646282711232},
+                                                                            {54, 3.2010935757366896},
+                                                                            {266, 0.84444422521258167},
+                                                                            {482, 1.9865377887960551},
+                                                                            {698, 4.1768690252280765}}};
+  #endif  // PPMC
+#endif    // MHD
 
   // Loop over different directions
   for (size_t direction = 0; direction < 3; direction++) {
@@ -133,15 +202,15 @@ TEST(tALLPpmcVLReconstructor, CorrectInputExpectCorrectOutput)
     // Launch kernel
     switch (direction) {
       case 0:
-        hipLaunchKernelGGL(PPMC_cuda<0>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PPM_cuda<0>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx, ny, nz, 0, 0, gamma);
         break;
       case 1:
-        hipLaunchKernelGGL(PPMC_cuda<1>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PPM_cuda<1>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx, ny, nz, 0, 0, gamma);
         break;
       case 2:
-        hipLaunchKernelGGL(PPMC_cuda<2>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
+        hipLaunchKernelGGL(PPM_cuda<2>, dev_grid.size(), 1, 0, 0, dev_grid.data(), dev_interface_left.data(),
                            dev_interface_right.data(), nx, ny, nz, 0, 0, gamma);
         break;
     }

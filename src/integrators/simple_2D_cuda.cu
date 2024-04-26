@@ -9,8 +9,7 @@
 #include "../hydro/hydro_cuda.h"
 #include "../integrators/simple_2D_cuda.h"
 #include "../reconstruction/plm_cuda.h"
-#include "../reconstruction/ppmc_cuda.h"
-#include "../reconstruction/ppmp_cuda.h"
+#include "../reconstruction/ppm_cuda.h"
 #include "../reconstruction/reconstruction.h"
 #include "../riemann_solvers/exact_cuda.h"
 #include "../riemann_solvers/hllc_cuda.h"
@@ -57,15 +56,9 @@ void Simple_Algorithm_2D_CUDA(Real *d_conserved, int nx, int ny, int x_off, int 
   hipLaunchKernelGGL(PLM_cuda<0>, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
   hipLaunchKernelGGL(PLM_cuda<1>, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
 #endif  // PLMP or PLMC
-#ifdef PPMP
-  hipLaunchKernelGGL(PPMP_cuda, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, n_ghost, dx, dt,
-                     gama, 0, n_fields);
-  hipLaunchKernelGGL(PPMP_cuda, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, n_ghost, dy, dt,
-                     gama, 1, n_fields);
-#endif
-#ifdef PPMC
-  hipLaunchKernelGGL(PPMC_cuda<0>, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
-  hipLaunchKernelGGL(PPMC_cuda<1>, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
+#if defined(PPMP) or defined(PPMC)
+  hipLaunchKernelGGL(PPM_cuda<0>, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
+  hipLaunchKernelGGL(PPM_cuda<1>, dim2dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
 #endif
   GPU_Error_Check();
 

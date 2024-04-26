@@ -2,8 +2,8 @@
  *  \brief Declarations of the cuda plm kernels
  */
 
-#ifndef PLMC_CUDA_H
-#define PLMC_CUDA_H
+#ifndef PLM_CUDA_H
+#define PLM_CUDA_H
 
 #include "../global/global.h"
 #include "../grid/grid_enum.h"
@@ -314,4 +314,4 @@ auto __device__ __inline__ PLM_Reconstruction(Real *dev_conserved, int const xid
 }
 }  // namespace reconstruction
 
-#endif  // PLMC_CUDA_H
+#endif  // PLM_CUDA_H
