@@ -95,11 +95,6 @@ void Check_Configuration(Parameters const& P)
     #error "MHD only supports the HLLD Riemann Solver"
   #endif  //! HLLD or EXACT or ROE or HLL or HLLC
 
-  // May only use certain reconstructions
-  #if ((defined(PCM) + defined(PLMP) + defined(PLMC) + defined(PPMC)) != 1) || defined(PPMP)
-    #error "MHD does not support PPMP reconstruction."
-  #endif  // Reconstruction check
-
   // must have HDF5
   #if defined(OUTPUT) and (not defined(HDF5))
     #error "MHD only supports HDF5 output"

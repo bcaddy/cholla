@@ -1,4 +1,4 @@
-/*! \file ppmc_cuda.cu
+/*! \file ppm_cuda.cu
  *  \brief Functions definitions for the ppm kernels, using characteristic
  tracing. Written following Stone et al. 2008. */
 
@@ -6,7 +6,7 @@
 
 #include "../global/global.h"
 #include "../global/global_cuda.h"
-#include "../reconstruction/ppmc_cuda.h"
+#include "../reconstruction/ppm_cuda.h"
 #include "../reconstruction/reconstruction_internals.h"
 #include "../utils/gpu.hpp"
 #include "../utils/hydro_utilities.h"
@@ -17,8 +17,8 @@
 
 // =====================================================================================================================
 template <int dir>
-__global__ __launch_bounds__(TPB) void PPMC_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
-                                                 int ny, int nz, Real dx, Real dt, Real gamma)
+__global__ __launch_bounds__(TPB) void PPM_cuda(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int nx,
+                                                int ny, int nz, Real dx, Real dt, Real gamma)
 {
   // get a thread ID
   int const thread_id = threadIdx.x + blockIdx.x * blockDim.x;
@@ -74,6 +74,7 @@ __global__ __launch_bounds__(TPB) void PPMC_cuda(Real *dev_conserved, Real *dev_
   hydro_utilities::Primitive const cell_ip2 = hydro_utilities::Load_Cell_Primitive<dir>(
       dev_conserved, xid + 2 * int(dir == 0), yid + 2 * int(dir == 1), zid + 2 * int(dir == 2), nx, ny, n_cells, gamma);
 
+#ifdef PPMC
   // Compute the eigenvectors
   reconstruction::EigenVecs const eigenvectors = reconstruction::Compute_Eigenvectors(cell_i, gamma);
 
@@ -98,32 +99,9 @@ __global__ __launch_bounds__(TPB) void PPMC_cuda(Real *dev_conserved, Real *dev_
       reconstruction::Primitive_To_Characteristic(cell_i, cell_ip2, eigenvectors, gamma);
 
   // Compute the interface states for each field
-  reconstruction::Characteristic interface_R_imh_characteristic, interface_L_iph_characteristic;
-
-  reconstruction::PPM_Single_Variable(cell_im2_characteristic.a0, cell_im1_characteristic.a0, cell_i_characteristic.a0,
-                                      cell_ip1_characteristic.a0, cell_ip2_characteristic.a0,
-                                      interface_L_iph_characteristic.a0, interface_R_imh_characteristic.a0);
-  reconstruction::PPM_Single_Variable(cell_im2_characteristic.a1, cell_im1_characteristic.a1, cell_i_characteristic.a1,
-                                      cell_ip1_characteristic.a1, cell_ip2_characteristic.a1,
-                                      interface_L_iph_characteristic.a1, interface_R_imh_characteristic.a1);
-  reconstruction::PPM_Single_Variable(cell_im2_characteristic.a2, cell_im1_characteristic.a2, cell_i_characteristic.a2,
-                                      cell_ip1_characteristic.a2, cell_ip2_characteristic.a2,
-                                      interface_L_iph_characteristic.a2, interface_R_imh_characteristic.a2);
-  reconstruction::PPM_Single_Variable(cell_im2_characteristic.a3, cell_im1_characteristic.a3, cell_i_characteristic.a3,
-                                      cell_ip1_characteristic.a3, cell_ip2_characteristic.a3,
-                                      interface_L_iph_characteristic.a3, interface_R_imh_characteristic.a3);
-  reconstruction::PPM_Single_Variable(cell_im2_characteristic.a4, cell_im1_characteristic.a4, cell_i_characteristic.a4,
-                                      cell_ip1_characteristic.a4, cell_ip2_characteristic.a4,
-                                      interface_L_iph_characteristic.a4, interface_R_imh_characteristic.a4);
-
-#ifdef MHD
-  reconstruction::PPM_Single_Variable(cell_im2_characteristic.a5, cell_im1_characteristic.a5, cell_i_characteristic.a5,
-                                      cell_ip1_characteristic.a5, cell_ip2_characteristic.a5,
-                                      interface_L_iph_characteristic.a5, interface_R_imh_characteristic.a5);
-  reconstruction::PPM_Single_Variable(cell_im2_characteristic.a6, cell_im1_characteristic.a6, cell_i_characteristic.a6,
-                                      cell_ip1_characteristic.a6, cell_ip2_characteristic.a6,
-                                      interface_L_iph_characteristic.a6, interface_R_imh_characteristic.a6);
-#endif  // MHD
+  auto const [interface_L_iph_characteristic, interface_R_imh_characteristic] =
+      reconstruction::PPM_Interfaces(cell_im2_characteristic, cell_im1_characteristic, cell_i_characteristic,
+                                     cell_ip1_characteristic, cell_ip2_characteristic);
 
   // Convert back to primitive variables
   hydro_utilities::Primitive interface_L_iph =
@@ -132,20 +110,24 @@ __global__ __launch_bounds__(TPB) void PPMC_cuda(Real *dev_conserved, Real *dev_
       reconstruction::Characteristic_To_Primitive(cell_i, interface_R_imh_characteristic, eigenvectors, gamma);
 
   // Compute the interfaces for the variables that don't have characteristics
-#ifdef DE
+  #ifdef DE
   reconstruction::PPM_Single_Variable(cell_im2.gas_energy_specific, cell_im1.gas_energy_specific,
                                       cell_i.gas_energy_specific, cell_ip1.gas_energy_specific,
                                       cell_ip2.gas_energy_specific, interface_L_iph.gas_energy_specific,
                                       interface_R_imh.gas_energy_specific);
-#endif  // DE
-#ifdef SCALAR
+  #endif  // DE
+  #ifdef SCALAR
   for (int i = 0; i < NSCALARS; i++) {
     reconstruction::PPM_Single_Variable(cell_im2.scalar_specific[i], cell_im1.scalar_specific[i],
                                         cell_i.scalar_specific[i], cell_ip1.scalar_specific[i],
                                         cell_ip2.scalar_specific[i], interface_L_iph.scalar_specific[i],
                                         interface_R_imh.scalar_specific[i]);
   }
-#endif  // SCALAR
+  #endif  // SCALAR
+#else     // PPMC
+  auto [interface_L_iph, interface_R_imh] =
+      reconstruction::PPM_Interfaces(cell_im2, cell_im1, cell_i, cell_ip1, cell_ip2);
+#endif    // PPMC
 
   // Do the characteristic tracing
 #ifndef VL
@@ -169,13 +151,10 @@ __global__ __launch_bounds__(TPB) void PPMC_cuda(Real *dev_conserved, Real *dev_
   reconstruction::Write_Data(interface_R_imh, dev_bounds_R, dev_conserved, id, n_cells, o1, o2, o3, gamma);
 }
 // Instantiate the relevant template specifications
-template __global__ __launch_bounds__(TPB) void PPMC_cuda<0>(Real *dev_conserved, Real *dev_bounds_L,
-                                                             Real *dev_bounds_R, int nx, int ny, int nz, Real dx,
-                                                             Real dt, Real gamma);
-template __global__ __launch_bounds__(TPB) void PPMC_cuda<1>(Real *dev_conserved, Real *dev_bounds_L,
-                                                             Real *dev_bounds_R, int nx, int ny, int nz, Real dx,
-                                                             Real dt, Real gamma);
-template __global__ __launch_bounds__(TPB) void PPMC_cuda<2>(Real *dev_conserved, Real *dev_bounds_L,
-                                                             Real *dev_bounds_R, int nx, int ny, int nz, Real dx,
-                                                             Real dt, Real gamma);
+template __global__ __launch_bounds__(TPB) void PPM_cuda<0>(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R,
+                                                            int nx, int ny, int nz, Real dx, Real dt, Real gamma);
+template __global__ __launch_bounds__(TPB) void PPM_cuda<1>(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R,
+                                                            int nx, int ny, int nz, Real dx, Real dt, Real gamma);
+template __global__ __launch_bounds__(TPB) void PPM_cuda<2>(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R,
+                                                            int nx, int ny, int nz, Real dx, Real dt, Real gamma);
 // =====================================================================================================================
