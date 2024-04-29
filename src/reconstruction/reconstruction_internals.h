@@ -858,20 +858,25 @@ auto __device__ __host__ __inline__ PPM_Interfaces(hydro_utilities::Primitive co
 
   reconstruction::PPM_Single_Variable(cell_im2.density, cell_im1.density, cell_i.density, cell_ip1.density,
                                       cell_ip2.density, interface_L_iph.density, interface_R_imh.density);
-  reconstruction::PPM_Single_Variable(cell_im2.velocity.x, cell_im1.velocity.x, cell_i.velocity.x, cell_ip1.velocity.x,
-                                      cell_ip2.velocity.x, interface_L_iph.velocity.x, interface_R_imh.velocity.x);
-  reconstruction::PPM_Single_Variable(cell_im2.velocity.y, cell_im1.velocity.y, cell_i.velocity.y, cell_ip1.velocity.y,
-                                      cell_ip2.velocity.y, interface_L_iph.velocity.y, interface_R_imh.velocity.y);
-  reconstruction::PPM_Single_Variable(cell_im2.velocity.z, cell_im1.velocity.z, cell_i.velocity.z, cell_ip1.velocity.z,
-                                      cell_ip2.velocity.z, interface_L_iph.velocity.z, interface_R_imh.velocity.z);
+  reconstruction::PPM_Single_Variable(cell_im2.velocity.x(), cell_im1.velocity.x(), cell_i.velocity.x(),
+                                      cell_ip1.velocity.x(), cell_ip2.velocity.x(), interface_L_iph.velocity.x(),
+                                      interface_R_imh.velocity.x());
+  reconstruction::PPM_Single_Variable(cell_im2.velocity.y(), cell_im1.velocity.y(), cell_i.velocity.y(),
+                                      cell_ip1.velocity.y(), cell_ip2.velocity.y(), interface_L_iph.velocity.y(),
+                                      interface_R_imh.velocity.y());
+  reconstruction::PPM_Single_Variable(cell_im2.velocity.z(), cell_im1.velocity.z(), cell_i.velocity.z(),
+                                      cell_ip1.velocity.z(), cell_ip2.velocity.z(), interface_L_iph.velocity.z(),
+                                      interface_R_imh.velocity.z());
   reconstruction::PPM_Single_Variable(cell_im2.pressure, cell_im1.pressure, cell_i.pressure, cell_ip1.pressure,
                                       cell_ip2.pressure, interface_L_iph.pressure, interface_R_imh.pressure);
 
 #ifdef MHD
-  reconstruction::PPM_Single_Variable(cell_im2.magnetic.y, cell_im1.magnetic.y, cell_i.magnetic.y, cell_ip1.magnetic.y,
-                                      cell_ip2.magnetic.y, interface_L_iph.magnetic.y, interface_R_imh.magnetic.y);
-  reconstruction::PPM_Single_Variable(cell_im2.magnetic.z, cell_im1.magnetic.z, cell_i.magnetic.z, cell_ip1.magnetic.z,
-                                      cell_ip2.magnetic.z, interface_L_iph.magnetic.z, interface_R_imh.magnetic.z);
+  reconstruction::PPM_Single_Variable(cell_im2.magnetic.y(), cell_im1.magnetic.y(), cell_i.magnetic.y(),
+                                      cell_ip1.magnetic.y(), cell_ip2.magnetic.y(), interface_L_iph.magnetic.y(),
+                                      interface_R_imh.magnetic.y());
+  reconstruction::PPM_Single_Variable(cell_im2.magnetic.z(), cell_im1.magnetic.z(), cell_i.magnetic.z(),
+                                      cell_ip1.magnetic.z(), cell_ip2.magnetic.z(), interface_L_iph.magnetic.z(),
+                                      interface_R_imh.magnetic.z());
 #endif  // MHD
 
 #ifdef DE
