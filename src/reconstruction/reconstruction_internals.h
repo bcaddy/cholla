@@ -638,15 +638,15 @@ hydro_utilities::Primitive __device__ __host__ __inline__ Van_Leer_Limiter(hydro
   hydro_utilities::Primitive del_m;
 
   // Monotonize the slopes
-  del_m.density    = Van_Leer_Limiter(del_L.density, del_R.density, del_C.density, del_G.density);
-  del_m.velocity.x = Van_Leer_Limiter(del_L.velocity.x, del_R.velocity.x, del_C.velocity.x, del_G.velocity.x);
-  del_m.velocity.y = Van_Leer_Limiter(del_L.velocity.y, del_R.velocity.y, del_C.velocity.y, del_G.velocity.y);
-  del_m.velocity.z = Van_Leer_Limiter(del_L.velocity.z, del_R.velocity.z, del_C.velocity.z, del_G.velocity.z);
-  del_m.pressure   = Van_Leer_Limiter(del_L.pressure, del_R.pressure, del_C.pressure, del_G.pressure);
+  del_m.density      = Van_Leer_Limiter(del_L.density, del_R.density, del_C.density, del_G.density);
+  del_m.velocity.x() = Van_Leer_Limiter(del_L.velocity.x(), del_R.velocity.x(), del_C.velocity.x(), del_G.velocity.x());
+  del_m.velocity.y() = Van_Leer_Limiter(del_L.velocity.y(), del_R.velocity.y(), del_C.velocity.y(), del_G.velocity.y());
+  del_m.velocity.z() = Van_Leer_Limiter(del_L.velocity.z(), del_R.velocity.z(), del_C.velocity.z(), del_G.velocity.z());
+  del_m.pressure     = Van_Leer_Limiter(del_L.pressure, del_R.pressure, del_C.pressure, del_G.pressure);
 
 #ifdef MHD
-  del_m.magnetic.y = Van_Leer_Limiter(del_L.magnetic.y, del_R.magnetic.y, del_C.magnetic.y, del_G.magnetic.y);
-  del_m.magnetic.z = Van_Leer_Limiter(del_L.magnetic.z, del_R.magnetic.z, del_C.magnetic.z, del_G.magnetic.z);
+  del_m.magnetic.y() = Van_Leer_Limiter(del_L.magnetic.y(), del_R.magnetic.y(), del_C.magnetic.y(), del_G.magnetic.y());
+  del_m.magnetic.z() = Van_Leer_Limiter(del_L.magnetic.z(), del_R.magnetic.z(), del_C.magnetic.z(), del_G.magnetic.z());
 #endif  // MHD
 
 #ifdef DE
