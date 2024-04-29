@@ -447,37 +447,6 @@ TEST(tALLReconstructionVanLeerSlopeCharacteristic, CorrectInputExpectCorrectOutp
   testing_utilities::Check_Results(fiducial_data.a4, test_data.a4, "a4");
 }
 
-TEST(tHYDROReconstructionMonotizeParabolicInterface, CorrectInputExpectCorrectOutput)
-{
-  // Input Data
-
-  hydro_utilities::Primitive const cell_i{1.4708046701, {9.5021020181, 3.7123503442, 4.6476103466}, 3.7096802847};
-  hydro_utilities::Primitive const cell_im1{3.9547588941, {3.1552319951, 3.0209247624, 9.5841013261}, 2.2945188332};
-  hydro_utilities::Primitive const cell_ip1{5.1973323534, {6.9132613767, 1.8397298636, 5.341960387}, 9.093498542};
-  hydro_utilities::Primitive interface_L_iph{6.7787324804, {9.5389820358, 9.8522754567, 7.8305142852}, 2.450533435};
-  hydro_utilities::Primitive interface_R_imh{4.8015193892, {5.9124263972, 8.7513040382, 8.3659359773}, 1.339777121};
-
-  // Get test data
-  reconstruction::Monotonize_Parabolic_Interface(cell_i, cell_im1, cell_ip1, interface_L_iph, interface_R_imh);
-
-  // Check results
-  hydro_utilities::Primitive const fiducial_interface_L{
-      1.4708046700999999, {9.5021020181000004, 3.7123503441999999, 4.6476103465999996}, 3.7096802847000001};
-  hydro_utilities::Primitive const fiducial_interface_R{
-      1.4708046700999999, {9.428341982700001, 3.7123503441999999, 4.6476103465999996}, 3.7096802847000001};
-  testing_utilities::Check_Results(fiducial_interface_L.density, interface_L_iph.density, "density");
-  testing_utilities::Check_Results(fiducial_interface_L.velocity.x(), interface_L_iph.velocity.x(), "velocity.x()");
-  testing_utilities::Check_Results(fiducial_interface_L.velocity.y(), interface_L_iph.velocity.y(), "velocity.y()");
-  testing_utilities::Check_Results(fiducial_interface_L.velocity.z(), interface_L_iph.velocity.z(), "velocity.z()");
-  testing_utilities::Check_Results(fiducial_interface_L.pressure, interface_L_iph.pressure, "pressure");
-
-  testing_utilities::Check_Results(fiducial_interface_R.density, interface_R_imh.density, "density");
-  testing_utilities::Check_Results(fiducial_interface_R.velocity.x(), interface_R_imh.velocity.x(), "velocity.x()");
-  testing_utilities::Check_Results(fiducial_interface_R.velocity.y(), interface_R_imh.velocity.y(), "velocity.y()");
-  testing_utilities::Check_Results(fiducial_interface_R.velocity.z(), interface_R_imh.velocity.z(), "velocity.z()");
-  testing_utilities::Check_Results(fiducial_interface_R.pressure, interface_R_imh.pressure, "pressure");
-}
-
 TEST(tALLReconstructionCalcInterfaceLinear, CorrectInputExpectCorrectOutput)
 {
   // Setup input data
@@ -505,48 +474,6 @@ TEST(tALLReconstructionCalcInterfaceLinear, CorrectInputExpectCorrectOutput)
   testing_utilities::Check_Results(fiducial_data.magnetic.z(), test_data.magnetic.z(), "magnetic.z()");
 #else   // MHD
   hydro_utilities::Primitive const fiducial_data{2.5, {3.75, 5, 6.25}, 7.5};
-  testing_utilities::Check_Results(fiducial_data.density, test_data.density, "density");
-  testing_utilities::Check_Results(fiducial_data.velocity.x(), test_data.velocity.x(), "velocity.x()");
-  testing_utilities::Check_Results(fiducial_data.velocity.y(), test_data.velocity.y(), "velocity.y()");
-  testing_utilities::Check_Results(fiducial_data.velocity.z(), test_data.velocity.z(), "velocity.z()");
-  testing_utilities::Check_Results(fiducial_data.pressure, test_data.pressure, "pressure");
-#endif  // MHD
-}
-
-TEST(tALLReconstructionCalcInterfaceParabolic, CorrectInputExpectCorrectOutput)
-{
-  // Setup input data
-#ifdef MHD
-  hydro_utilities::Primitive cell_i{1, {2, 3, 4}, 5, {6, 7, 8}};
-  hydro_utilities::Primitive cell_im1{6, {7, 8, 9}, 10, {11, 12, 13}};
-  hydro_utilities::Primitive slopes_i{14, {15, 16, 17}, 18, {19, 20, 21}};
-  hydro_utilities::Primitive slopes_im1{22, {23, 24, 25}, 26, {27, 28, 29}};
-#else   // MHD
-  hydro_utilities::Primitive cell_i{1, {2, 3, 4}, 5};
-  hydro_utilities::Primitive cell_im1{6, {7, 8, 9}, 10};
-  hydro_utilities::Primitive slopes_i{14, {15, 16, 17}, 18};
-  hydro_utilities::Primitive slopes_im1{22, {23, 24, 25}, 26};
-#endif  // MHD
-
-  // Get test data
-  auto test_data = reconstruction::Calc_Interface_Parabolic(cell_i, cell_im1, slopes_i, slopes_im1);
-
-  // Check results
-#ifdef MHD
-  hydro_utilities::Primitive const fiducial_data{4.833333333333333,
-                                                 {5.833333333333333, 6.833333333333333, 7.833333333333333},
-                                                 8.8333333333333339,
-                                                 {0.0, 10.833333333333334, 11.833333333333334}};
-  testing_utilities::Check_Results(fiducial_data.density, test_data.density, "density");
-  testing_utilities::Check_Results(fiducial_data.velocity.x(), test_data.velocity.x(), "velocity.x()");
-  testing_utilities::Check_Results(fiducial_data.velocity.y(), test_data.velocity.y(), "velocity.y()");
-  testing_utilities::Check_Results(fiducial_data.velocity.z(), test_data.velocity.z(), "velocity.z()");
-  testing_utilities::Check_Results(fiducial_data.pressure, test_data.pressure, "pressure");
-  testing_utilities::Check_Results(fiducial_data.magnetic.y(), test_data.magnetic.y(), "magnetic.y()");
-  testing_utilities::Check_Results(fiducial_data.magnetic.z(), test_data.magnetic.z(), "magnetic.z()");
-#else   // MHD
-  hydro_utilities::Primitive const fiducial_data{
-      4.833333333333333, {5.833333333333333, 6.833333333333333, 7.833333333333333}, 8.8333333333333339};
   testing_utilities::Check_Results(fiducial_data.density, test_data.density, "density");
   testing_utilities::Check_Results(fiducial_data.velocity.x(), test_data.velocity.x(), "velocity.x()");
   testing_utilities::Check_Results(fiducial_data.velocity.y(), test_data.velocity.y(), "velocity.y()");
