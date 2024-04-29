@@ -13,8 +13,7 @@
   #include "../integrators/simple_3D_cuda.h"
   #include "../io/io.h"
   #include "../reconstruction/plm_cuda.h"
-  #include "../reconstruction/ppmc_cuda.h"
-  #include "../reconstruction/ppmp_cuda.h"
+  #include "../reconstruction/ppm_cuda.h"
   #include "../reconstruction/reconstruction.h"
   #include "../riemann_solvers/exact_cuda.h"
   #include "../riemann_solvers/hll_cuda.h"
@@ -89,18 +88,10 @@ void Simple_Algorithm_3D_CUDA(Real *d_conserved, Real *d_grav_potential, int nx,
   hipLaunchKernelGGL(PLM_cuda<1>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
   hipLaunchKernelGGL(PLM_cuda<2>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lz, Q_Rz, nx, ny, nz, dz, dt, gama);
   #endif  // PLMP or PLMC
-  #ifdef PPMP
-  hipLaunchKernelGGL(PPMP_cuda, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, n_ghost, dx, dt,
-                     gama, 0, n_fields);
-  hipLaunchKernelGGL(PPMP_cuda, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, n_ghost, dy, dt,
-                     gama, 1, n_fields);
-  hipLaunchKernelGGL(PPMP_cuda, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lz, Q_Rz, nx, ny, nz, n_ghost, dz, dt,
-                     gama, 2, n_fields);
-  #endif  // PPMP
-  #ifdef PPMC
-  hipLaunchKernelGGL(PPMC_CTU<0>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
-  hipLaunchKernelGGL(PPMC_CTU<1>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
-  hipLaunchKernelGGL(PPMC_CTU<2>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lz, Q_Rz, nx, ny, nz, dz, dt, gama);
+  #if defined(PPMP) or defined(PPMC)
+  hipLaunchKernelGGL(PPM_cuda<0>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
+  hipLaunchKernelGGL(PPM_cuda<1>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
+  hipLaunchKernelGGL(PPM_cuda<2>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lz, Q_Rz, nx, ny, nz, dz, dt, gama);
   GPU_Error_Check();
   #endif  // PPMC
 
