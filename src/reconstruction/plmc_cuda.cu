@@ -152,8 +152,8 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
   interface_L_iph.pressure     = interface_L_iph.pressure - qx * del_m_i.pressure;
 
   #ifdef DE
-  interface_R_imh.gas_energy_specific = interface_R_imh.gas_energy_specific + qx * del_m_i.gas_energy_specific;
-  interface_L_iph.gas_energy_specific = interface_L_iph.gas_energy_specific - qx * del_m_i.gas_energy_specific;
+  interface_R_imh.gas_energy = interface_R_imh.gas_energy + qx * del_m_i.gas_energy;
+  interface_L_iph.gas_energy = interface_L_iph.gas_energy - qx * del_m_i.gas_energy;
   #endif  // DE
 
   #ifdef SCALAR
@@ -192,7 +192,7 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
     sum_2 += lamdiff * del_m_i.velocity.y();
     sum_3 += lamdiff * del_m_i.velocity.z();
   #ifdef DE
-    sum_ge += lamdiff * del_m_i.gas_energy_specific;
+    sum_ge += lamdiff * del_m_i.gas_energy;
   #endif  // DE
   #ifdef SCALAR
     for (int i = 0; i < NSCALARS; i++) {
@@ -216,7 +216,7 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
   interface_L_iph.velocity.z() += 0.5 * dtodx * sum_3;
   interface_L_iph.pressure += 0.5 * dtodx * sum_4;
   #ifdef DE
-  interface_L_iph.gas_energy_specific += 0.5 * dtodx * sum_ge;
+  interface_L_iph.gas_energy += 0.5 * dtodx * sum_ge;
   #endif  // DE
   #ifdef SCALAR
   for (int i = 0; i < NSCALARS; i++) {
@@ -249,7 +249,7 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
     sum_2 += lamdiff * del_m_i.velocity.y();
     sum_3 += lamdiff * del_m_i.velocity.z();
   #ifdef DE
-    sum_ge += lamdiff * del_m_i.gas_energy_specific;
+    sum_ge += lamdiff * del_m_i.gas_energy;
   #endif  // DE
   #ifdef SCALAR
     for (int i = 0; i < NSCALARS; i++) {
@@ -273,7 +273,7 @@ __global__ __launch_bounds__(TPB) void PLMC_cuda(Real *dev_conserved, Real *dev_
   interface_R_imh.velocity.z() += 0.5 * dtodx * sum_3;
   interface_R_imh.pressure += 0.5 * dtodx * sum_4;
   #ifdef DE
-  interface_R_imh.gas_energy_specific += 0.5 * dtodx * sum_ge;
+  interface_R_imh.gas_energy += 0.5 * dtodx * sum_ge;
   #endif  // DE
   #ifdef SCALAR
   for (int i = 0; i < NSCALARS; i++) {
