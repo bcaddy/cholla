@@ -90,7 +90,7 @@ class Thermal_State
   }
 };
 
-__device__ void get_temperature_indx(Real T, Chemistry_Header &Chem_H, int &temp_indx, Real &delta_T, Real temp_old,
+__device__ void get_temperature_indx(Real T, ChemistryHeader &Chem_H, int &temp_indx, Real &delta_T, Real temp_old,
                                      bool print)
 {
   Real logT, logT_start, d_logT, logT_l, logT_r;
@@ -118,7 +118,7 @@ __device__ Real interpolate_rate(Real *rate_table, int indx, Real delta)
   return rate_val;
 }
 
-__device__ Real Get_Cooling_Rates(Thermal_State &TS, Chemistry_Header &Chem_H, Real dens_number_conv, Real current_z,
+__device__ Real Get_Cooling_Rates(Thermal_State &TS, ChemistryHeader &Chem_H, Real dens_number_conv, Real current_z,
                                   Real temp_prev, float photo_h_HI, float photo_h_HeI, float photo_h_HeII, bool print)
 {
   int temp_indx;
@@ -201,7 +201,7 @@ __device__ Real Get_Cooling_Rates(Thermal_State &TS, Chemistry_Header &Chem_H, R
   return U_dot;
 }
 
-__device__ void Get_Reaction_Rates(Thermal_State &TS, Chemistry_Header &Chem_H, Real &k_coll_i_HI, Real &k_coll_i_HeI,
+__device__ void Get_Reaction_Rates(Thermal_State &TS, ChemistryHeader &Chem_H, Real &k_coll_i_HI, Real &k_coll_i_HeI,
                                    Real &k_coll_i_HeII, Real &k_coll_i_HI_HI, Real &k_coll_i_HI_HeI, Real &k_recomb_HII,
                                    Real &k_recomb_HeII, Real &k_recomb_HeIII, bool print)
 {
@@ -257,7 +257,7 @@ __device__ Real linear_interpolation(Real delta_x, int indx_l, int indx_r, float
   return v;
 }
 
-__device__ void Get_Current_UVB_Rates(Real current_z, Chemistry_Header &Chem_H, float &photo_i_HI, float &photo_i_HeI,
+__device__ void Get_Current_UVB_Rates(Real current_z, ChemistryHeader &Chem_H, float &photo_i_HI, float &photo_i_HeI,
                                       float &photo_i_HeII, float &photo_h_HI, float &photo_h_HeI, float &photo_h_HeII,
                                       bool print)
 {
@@ -287,7 +287,7 @@ __device__ void Get_Current_UVB_Rates(Real current_z, Chemistry_Header &Chem_H, 
   photo_h_HeII = linear_interpolation(delta_x, indx_l, indx_l + 1, Chem_H.photo_heat_HeII_rate_d);
 }
 
-__device__ Real Get_Chemistry_dt(Thermal_State &TS, Chemistry_Header &Chem_H, Real &HI_dot, Real &e_dot, Real U_dot,
+__device__ Real Get_Chemistry_dt(Thermal_State &TS, ChemistryHeader &Chem_H, Real &HI_dot, Real &e_dot, Real U_dot,
                                  Real k_coll_i_HI, Real k_coll_i_HeI, Real k_coll_i_HeII, Real k_coll_i_HI_HI,
                                  Real k_coll_i_HI_HeI, Real k_recomb_HII, Real k_recomb_HeII, Real k_recomb_HeIII,
                                  float photo_i_HI, float photo_i_HeI, float photo_i_HeII, int n_iter, Real HI_dot_prev,
@@ -328,7 +328,9 @@ __device__ Real Get_Chemistry_dt(Thermal_State &TS, Chemistry_Header &Chem_H, Re
   }
 
   #ifdef TEMPERATURE_FLOOR
-  if (TS.get_temperature(Chem_H.gamma) < TEMP_FLOOR) TS.U = TS.compute_U(TEMP_FLOOR, Chem_H.gamma);
+  if (TS.get_temperature(Chem_H.gamma) < Chem_H.temperature_floor) {
+    TS.U = TS.compute_U(Chem_H.temperature_floor, Chem_H.gamma);
+  }
   #endif
 
   energy = fmax(TS.U * TS.d, tiny);
@@ -355,7 +357,7 @@ __device__ Real Get_Chemistry_dt(Thermal_State &TS, Chemistry_Header &Chem_H, Re
   return dt;
 }
 
-__device__ void Update_Step(Thermal_State &TS, Chemistry_Header &Chem_H, Real dt, Real U_dot, Real k_coll_i_HI,
+__device__ void Update_Step(Thermal_State &TS, ChemistryHeader &Chem_H, Real dt, Real U_dot, Real k_coll_i_HI,
                             Real k_coll_i_HeI, Real k_coll_i_HeII, Real k_coll_i_HI_HI, Real k_coll_i_HI_HeI,
                             Real k_recomb_HII, Real k_recomb_HeII, Real k_recomb_HeIII, float photo_i_HI,
                             float photo_i_HeI, float photo_i_HeII, Real &HI_dot_prev, Real &e_dot_prev, Real &temp_prev,
@@ -421,13 +423,15 @@ __device__ void Update_Step(Thermal_State &TS, Chemistry_Header &Chem_H, Real dt
   // Update internal energy
   TS.U += U_dot / TS.d * dt;
   #ifdef TEMPERATURE_FLOOR
-  if (TS.get_temperature(Chem_H.gamma) < TEMP_FLOOR) TS.U = TS.compute_U(TEMP_FLOOR, Chem_H.gamma);
+  if (TS.get_temperature(Chem_H.gamma) < Chem_H.temperature_floor) {
+    TS.U = TS.compute_U(Chem_H.temperature_floor, Chem_H.gamma);
+  }
   #endif
   if (print) printf("Updated U: %e \n", TS.U);
 }
 
 __global__ void Update_Chemistry_kernel(Real *dev_conserved, int nx, int ny, int nz, int n_ghost, int n_fields,
-                                        Real dt_hydro, Chemistry_Header Chem_H)
+                                        Real dt_hydro, ChemistryHeader Chem_H)
 {
   int id, xid, yid, zid, n_cells, n_iter;
   Real d, d_inv, vx, vy, vz;
@@ -482,17 +486,16 @@ __global__ void Update_Chemistry_kernel(Real *dev_conserved, int nx, int ny, int
     dt_hydro = dt_hydro / Chem_H.time_units;
 
   #ifdef COSMOLOGY
-    dt_hydro *= current_a * current_a / Chem_H.H0 * 1000 *
-                KPC
+    dt_hydro *= current_a * current_a / Chem_H.H0 * 1000 * KPC;
   #endif  // COSMOLOGY
-          // dt_hydro = dt_hydro * current_a * current_a / Chem_H.H0 *
-          // 1000 * KPC / Chem_H.time_units;
-          //  delta_a = Chem_H.H0 * sqrt( Chem_H.Omega_M/current_a +
-          //  Chem_H.Omega_L*pow(current_a, 2) ) / ( 1000 * KPC ) *
-          //  dt_hydro * Chem_H.time_units;
+    // dt_hydro = dt_hydro * current_a * current_a / Chem_H.H0 *
+    // 1000 * KPC / Chem_H.time_units;
+    //  delta_a = Chem_H.H0 * sqrt( Chem_H.Omega_M/current_a +
+    //  Chem_H.Omega_L*pow(current_a, 2) ) / ( 1000 * KPC ) *
+    //  dt_hydro * Chem_H.time_units;
 
-                    // Initialize the thermal state
-                    Thermal_State TS;
+    // Initialize the thermal state
+    Thermal_State TS;
     TS.d       = dev_conserved[id] / a3;
     TS.d_HI    = dev_conserved[id + n_cells * grid_enum::HI_density] / a3;
     TS.d_HII   = dev_conserved[id + n_cells * grid_enum::HII_density] / a3;
@@ -603,7 +606,7 @@ __global__ void Update_Chemistry_kernel(Real *dev_conserved, int nx, int ny, int
 }
 
 void Do_Chemistry_Update(Real *dev_conserved, int nx, int ny, int nz, int n_ghost, int n_fields, Real dt,
-                         Chemistry_Header &Chem_H)
+                         ChemistryHeader &Chem_H)
 {
   float time;
   cudaEvent_t start, stop;
@@ -648,7 +651,7 @@ void Do_Chemistry_Update(Real *dev_conserved, int nx, int ny, int nz, int n_ghos
 
 // Calculation of k1 (HI + e --> HII + 2e)
 // k1_rate
-__device__ Real coll_i_HI_rate(Real T, Real units)
+__host__ __device__ Real coll_i_HI_rate(Real T, Real units)
 {
   Real T_ev    = T / 11605.0;
   Real logT_ev = log(T_ev);
@@ -666,7 +669,7 @@ __device__ Real coll_i_HI_rate(Real T, Real units)
 
 // Calculation of k3 (HeI + e --> HeII + 2e)
 //  k3_rate
-__device__ Real coll_i_HeI_rate(Real T, Real units)
+__host__ __device__ Real coll_i_HeI_rate(Real T, Real units)
 {
   Real T_ev    = T / 11605.0;
   Real logT_ev = log(T_ev);
@@ -684,7 +687,7 @@ __device__ Real coll_i_HeI_rate(Real T, Real units)
 
 // Calculation of k4 (HeII + e --> HeI + photon)
 //  k4_rate
-__device__ Real recomb_HeII_rate(Real T, Real units, bool use_case_B)
+__host__ __device__ Real recomb_HeII_rate(Real T, Real units, bool use_case_B)
 {
   Real T_ev    = T / 11605.0;
   Real logT_ev = log(T_ev);
@@ -703,7 +706,7 @@ __device__ Real recomb_HeII_rate(Real T, Real units, bool use_case_B)
   }
 }
 // k4_rate Case A
-__device__ Real recomb_HeII_rate_case_A(Real T, Real units)
+__host__ __device__ Real recomb_HeII_rate_case_A(Real T, Real units)
 {
   Real T_ev    = T / 11605.0;
   Real logT_ev = log(T_ev);
@@ -716,7 +719,7 @@ __device__ Real recomb_HeII_rate_case_A(Real T, Real units)
   }
 }
 // k4_rate Case B
-__device__ Real recomb_HeII_rate_case_B(Real T, Real units)
+__host__ __device__ Real recomb_HeII_rate_case_B(Real T, Real units)
 {
   // If case B recombination on.
   return 1.26e-14 * pow(5.7067e5 / T, 0.75) / units;
@@ -724,7 +727,7 @@ __device__ Real recomb_HeII_rate_case_B(Real T, Real units)
 
 // Calculation of k2 (HII + e --> HI + photon)
 //  k2_rate
-__device__ Real recomb_HII_rate(Real T, Real units, bool use_case_B)
+__host__ __device__ Real recomb_HII_rate(Real T, Real units, bool use_case_B)
 {
   if (use_case_B) {
     if (T < 1.0e9) {
@@ -750,7 +753,7 @@ __device__ Real recomb_HII_rate(Real T, Real units, bool use_case_B)
   }
 }
 // k2_rate Case A
-__device__ Real recomb_HII_rate_case_A(Real T, Real units)
+__host__ __device__ Real recomb_HII_rate_case_A(Real T, Real units)
 {
   if (T > 5500) {
     // Convert temperature to appropriate form.
@@ -769,7 +772,7 @@ __device__ Real recomb_HII_rate_case_A(Real T, Real units)
 }
 
 // k2_rate Case B
-__device__ Real recomb_HII_rate_case_B(Real T, Real units)
+__host__ __device__ Real recomb_HII_rate_case_B(Real T, Real units)
 {
   if (T < 1.0e9) {
     return 4.881357e-6 * pow(T, -1.5) * pow((1.0 + 1.14813e2 * pow(T, -0.407)), -2.242) / units;
@@ -780,7 +783,7 @@ __device__ Real recomb_HII_rate_case_B(Real T, Real units)
 
 // Calculation of k5 (HeII + e --> HeIII + 2e)
 //  k5_rate
-__device__ Real coll_i_HeII_rate(Real T, Real units)
+__host__ __device__ Real coll_i_HeII_rate(Real T, Real units)
 {
   Real T_ev    = T / 11605.0;
   Real logT_ev = log(T_ev);
@@ -800,7 +803,7 @@ __device__ Real coll_i_HeII_rate(Real T, Real units)
 
 // Calculation of k6 (HeIII + e --> HeII + photon)
 //  k6_rate
-__device__ Real recomb_HeIII_rate(Real T, Real units, bool use_case_B)
+__host__ __device__ Real recomb_HeIII_rate(Real T, Real units, bool use_case_B)
 {
   Real k6;
   // Has case B recombination setting.
@@ -816,7 +819,7 @@ __device__ Real recomb_HeIII_rate(Real T, Real units, bool use_case_B)
   return k6;
 }
 // k6_rate Case A
-__device__ Real recomb_HeIII_rate_case_A(Real T, Real units)
+__host__ __device__ Real recomb_HeIII_rate_case_A(Real T, Real units)
 {
   Real k6;
   // Has case B recombination setting.
@@ -824,7 +827,7 @@ __device__ Real recomb_HeIII_rate_case_A(Real T, Real units)
   return k6;
 }
 // k6_rate Case B
-__device__ Real recomb_HeIII_rate_case_B(Real T, Real units)
+__host__ __device__ Real recomb_HeIII_rate_case_B(Real T, Real units)
 {
   Real k6;
   // Has case B recombination setting.
@@ -838,7 +841,7 @@ __device__ Real recomb_HeIII_rate_case_B(Real T, Real units)
 
 // Calculation of k57 (HI + HI --> HII + HI + e)
 //  k57_rate
-__device__ Real coll_i_HI_HI_rate(Real T, Real units)
+__host__ __device__ Real coll_i_HI_HI_rate(Real T, Real units)
 {
   // These rate coefficients are from Lenzuni, Chernoff & Salpeter (1991).
   // k57 value based on experimental cross-sections from Gealy & van Zyl (1987).
@@ -851,7 +854,7 @@ __device__ Real coll_i_HI_HI_rate(Real T, Real units)
 
 // Calculation of k58 (HI + HeI --> HII + HeI + e)
 //  k58_rate
-__device__ Real coll_i_HI_HeI_rate(Real T, Real units)
+__host__ __device__ Real coll_i_HI_HeI_rate(Real T, Real units)
 {
   // These rate coefficients are from Lenzuni, Chernoff & Salpeter (1991).
   // k58 value based on cross-sections from van Zyl, Le & Amme (1981).

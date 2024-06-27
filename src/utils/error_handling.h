@@ -64,7 +64,7 @@ void Check_Configuration(Parameters const& P);
  * the behavior is independent of the ``NDEBUG`` macro
  */
 #define CHOLLA_ASSERT(cond, ...)                                              \
-  if (not(cond)) {                                                            \
+  if (not(cond)) { /* NOLINT */                                               \
     Abort_With_Err_(__CHOLLA_PRETTY_FUNC__, __FILE__, __LINE__, __VA_ARGS__); \
   }
 

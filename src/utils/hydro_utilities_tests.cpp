@@ -321,7 +321,12 @@ TEST(tALLLoadCellPrimitive, CorrectInputExpectCorrectOutput)
     hydro_utilities::Primitive fiducial_data{
         13, {3.0769230769230771, 5.1538461538461542, 7.2307692307692308}, 39950.641025641031};
   #ifdef DE
+    #ifdef COSMOLOGY
+    fiducial_data.pressure = 98.666666666666671;
+    #else
     fiducial_data.pressure = 39950.641025641031;
+    #endif  // COSMOLOGY
+
   #endif  // DE
     testing_utilities::Check_Results(fiducial_data.density, test_data.density, "density");
     testing_utilities::Check_Results(fiducial_data.velocity.x(), test_data.velocity.x(), "velocity.x");
@@ -405,6 +410,9 @@ TEST(tALLConserved2Primitive, CorrectInputExpectCorrectOutput)
 #ifdef MHD
   fiducial_data.pressure = 5.5000000000000009;
 #endif  // MHD
+#if defined(DE) and defined(COSMOLOGY)
+  fiducial_data.pressure = 6.0000000000000009;
+#endif  // DE and COSMOLOGY
 
   testing_utilities::Check_Results(fiducial_data.density, test_data.density, "density");
   testing_utilities::Check_Results(fiducial_data.velocity.x(), test_data.velocity.x(), "velocity.x");

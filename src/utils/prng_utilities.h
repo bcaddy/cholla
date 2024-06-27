@@ -11,7 +11,7 @@
 class ChollaPrngGenerator
 {
  public:
-  std::mt19937_64 inline static generator;
+  static std::mt19937_64 generator;
 
   ChollaPrngGenerator(struct Parameters *P)
   {

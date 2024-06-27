@@ -7,6 +7,18 @@
 #include "../utils/basic_structs.h"
 #include "../utils/hydro_utilities.h"
 
+__global__ void PCM_Reconstruction_1D(Real *dev_conserved, Real *dev_bounds_L, Real *dev_bounds_R, int n_cells,
+                                      int n_ghost, Real gamma, int n_fields);
+
+__global__ void PCM_Reconstruction_2D(Real *dev_conserved, Real *dev_bounds_Lx, Real *dev_bounds_Rx,
+                                      Real *dev_bounds_Ly, Real *dev_bounds_Ry, int nx, int ny, int n_ghost, Real gamma,
+                                      int n_fields);
+
+__global__ void PCM_Reconstruction_3D(Real *dev_conserved, Real *dev_bounds_Lx, Real *dev_bounds_Rx,
+                                      Real *dev_bounds_Ly, Real *dev_bounds_Ry, Real *dev_bounds_Lz,
+                                      Real *dev_bounds_Rz, int nx, int ny, int nz, int n_ghost, Real gamma,
+                                      int n_fields);
+
 namespace reconstruction
 {
 /*!
@@ -23,7 +35,7 @@ namespace reconstruction
  * \param[in] gamma The adiabatic index
  * \return reconstruction::InterfaceState The interface state at xid, yid, zid
  */
-template <size_t direction>
+template <uint direction>
 reconstruction::InterfaceState __device__ __host__ inline PCM_Reconstruction(Real const *dev_conserved,
                                                                              size_t const xid, size_t const yid,
                                                                              size_t const zid, size_t const nx,

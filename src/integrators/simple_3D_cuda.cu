@@ -12,8 +12,7 @@
   #include "../hydro/hydro_cuda.h"
   #include "../integrators/simple_3D_cuda.h"
   #include "../io/io.h"
-  #include "../reconstruction/plmc_cuda.h"
-  #include "../reconstruction/plmp_cuda.h"
+  #include "../reconstruction/plm_cuda.h"
   #include "../reconstruction/ppmc_cuda.h"
   #include "../reconstruction/ppmp_cuda.h"
   #include "../reconstruction/reconstruction.h"
@@ -85,22 +84,11 @@ void Simple_Algorithm_3D_CUDA(Real *d_conserved, Real *d_grav_potential, int nx,
   #endif
 
   // Step 1: Construct left and right interface values using updated conserved variables
-  #ifdef PLMP
-  hipLaunchKernelGGL(PLMP_cuda, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, n_ghost, dx, dt,
-                     gama, 0, n_fields);
-  hipLaunchKernelGGL(PLMP_cuda, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, n_ghost, dy, dt,
-                     gama, 1, n_fields);
-  hipLaunchKernelGGL(PLMP_cuda, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lz, Q_Rz, nx, ny, nz, n_ghost, dz, dt,
-                     gama, 2, n_fields);
-  #endif  // PLMP
-  #ifdef PLMC
-  hipLaunchKernelGGL(PLMC_cuda<0>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama,
-                     n_fields);
-  hipLaunchKernelGGL(PLMC_cuda<1>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama,
-                     n_fields);
-  hipLaunchKernelGGL(PLMC_cuda<2>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lz, Q_Rz, nx, ny, nz, dz, dt, gama,
-                     n_fields);
-  #endif
+  #if defined(PLMP) or defined(PLMC)
+  hipLaunchKernelGGL(PLM_cuda<0>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, dx, dt, gama);
+  hipLaunchKernelGGL(PLM_cuda<1>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Ly, Q_Ry, nx, ny, nz, dy, dt, gama);
+  hipLaunchKernelGGL(PLM_cuda<2>, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lz, Q_Rz, nx, ny, nz, dz, dt, gama);
+  #endif  // PLMP or PLMC
   #ifdef PPMP
   hipLaunchKernelGGL(PPMP_cuda, dim1dGrid, dim1dBlock, 0, 0, dev_conserved, Q_Lx, Q_Rx, nx, ny, nz, n_ghost, dx, dt,
                      gama, 0, n_fields);

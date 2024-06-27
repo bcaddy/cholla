@@ -656,7 +656,7 @@ void AnalysisModule::Load_Scale_Outputs(struct Parameters *P)
 {
   char filename_1[100];
   strcpy(filename_1, P->analysis_scale_outputs_file);
-  chprintf(" Loading Analysis Scale_Factor Outpus: %s\n", filename_1);
+  chprintf(" Loading Analysis Scale_Factor Outputs: %s\n", filename_1);
 
   ifstream file_out(filename_1);
   string line;

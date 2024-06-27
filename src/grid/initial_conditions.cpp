@@ -31,7 +31,7 @@ void Grid3D::Set_Initial_Conditions(Parameters P)
   Set_Domain_Properties(P);
   Set_Gammas(P.gamma);
 
-  if (strcmp(P.init, "Constant") == 0) {
+  if (strcmp(P.init, "Constant") == 0 or strcmp(P.init, "Isolated_Stellar_Cluster") == 0) {
     Constant(P);
   } else if (strcmp(P.init, "Sound_Wave") == 0) {
     Sound_Wave(P);

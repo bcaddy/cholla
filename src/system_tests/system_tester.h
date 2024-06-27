@@ -261,9 +261,10 @@ class system_test::SystemTestRunner
    * `true` then the settings file is automatically found based on the naming
    * convention. If false then the user MUST provide all the required settings
    * with the SystemTestRunner::chollaLaunchParams member variable
+   * \param[in] gravityData Is there gravity data?
    */
   SystemTestRunner(bool const &particleData = false, bool const &hydroData = true, bool const &useFiducialFile = true,
-                   bool const &useSettingsFile = true);
+                   bool const &useSettingsFile = true, bool const &gravityData = false);
   ~SystemTestRunner();
 
  private:
@@ -273,6 +274,8 @@ class system_test::SystemTestRunner
   std::vector<H5::H5File> _testHydroFieldsFileVec;
   /// The test particle data files
   std::vector<H5::H5File> _testParticlesFileVec;
+  /// The test gravity data files
+  std::vector<H5::H5File> _testGravityFileVec;
 
   /// The path to the Cholla executable
   std::string _chollaPath;
@@ -332,6 +335,12 @@ class system_test::SystemTestRunner
   /// no particle data
   bool _particleDataExists = false;
 
+  /// Flag to indicate whether or not there is gravity data
+  /// If true then gravity data files are searched for and will be compared
+  /// to fiducial values. If false then it is assumed that the test produces
+  /// no gravity data
+  bool _gravityDataExists = false;
+
   /*!
    * \brief Using GTest assertions to check if the fiducial and test data have
    * the same number of time steps
@@ -358,6 +367,8 @@ class system_test::SystemTestRunner
    * \return std::vector<double> A vector with the contents of the data set
    */
   std::vector<double> _loadFiducialFieldData(std::string const &dataSetName);
+
+  std::vector<double> _loadGravityPotential(H5::H5File const &data_file);
 
   /*!
    * \brief Load the fiducial data for particles from the HDF5 file or return

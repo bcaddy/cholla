@@ -7,10 +7,13 @@
   #include "../mpi/mpi_routines.h"
 #endif
 
-#define VRMS_CUTOFF_DENSITY (0.01 * 0.6 * MP / DENSITY_UNIT)
-
-FeedbackAnalysis::FeedbackAnalysis(Grid3D& G)
+FeedbackAnalysis::FeedbackAnalysis(Grid3D& G, struct Parameters* P)
 {
+  // set distance limits beyond which contributions to the V_rms don't
+  // make sense, such as too close to the simulation volume edge or
+  // too high above the disk.
+  r_max = P->xlen / 2 * 0.975;
+  z_max = 0.15;  // 150 pc above/below the disk plane
   // allocate arrays
   h_circ_vel_x = (Real*)malloc(G.H.n_cells * sizeof(Real));
   h_circ_vel_y = (Real*)malloc(G.H.n_cells * sizeof(Real));
@@ -96,7 +99,7 @@ void FeedbackAnalysis::Compute_Gas_Velocity_Dispersion(Grid3D& G)
         id      = i + j * G.H.nx + k * G.H.nx * G.H.ny;
         id_grav = (i + ghost_diff) + (j + ghost_diff) * nx_grav + (k + ghost_diff) * nx_grav * ny_grav;
 
-        if (G.C.density[id] < VRMS_CUTOFF_DENSITY) continue;  // in cgs, this is 0.01 cm^{-3}
+        if (G.C.density[id] < FB_ANALYSIS_CUTOFF_DENSITY) continue;
 
         G.Get_Position(i, j, k, &x, &y, &z);
         r = sqrt(x * x + y * y);
